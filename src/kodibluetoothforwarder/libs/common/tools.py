@@ -15,9 +15,24 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from libs.kodibtforwarder import KodiBTForwarder
+import evdev
+from evdev import ecodes
 
-if __name__ == '__main__':
-    app = KodiBTForwarder()
-    app.start()
+
+def getBluetoothController(mac):
+    devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+    for device in devices:
+        if device.phys == mac:
+            print(device.path)
+            return device
+
+    return None
+
+
+def eventCodeToString(event):
+    return ecodes.KEY[event.code]
+
+
+def eventValueToString(event):
+    return ('up', 'down', 'hold')[event.value]
 

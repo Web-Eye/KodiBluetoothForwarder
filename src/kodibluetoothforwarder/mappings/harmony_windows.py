@@ -15,9 +15,3 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from libs.kodibtforwarder import KodiBTForwarder
-
-if __name__ == '__main__':
-    app = KodiBTForwarder()
-    app.start()
-
