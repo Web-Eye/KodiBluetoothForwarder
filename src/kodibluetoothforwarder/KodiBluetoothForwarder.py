@@ -58,30 +58,97 @@ def getConfig(args):
         with open(config_file) as json_data_file:
             _config = json.load(json_data_file)
 
-    if 'controller' not in config:
+    if 'controller' not in _config:
         _config['controller'] = {}
 
-    if 'xbmc' not in config:
+    if 'xbmc' not in _config:
         _config['xbmc'] = {}
 
-    if 'log' not in config:
+    if 'log' not in _config:
         _config['log'] = {}
 
     if args.controller:
-        config['controller']['mac'] = args.controller
+        _config['controller']['mac'] = args.controller
 
     if args.mapping:
-        config['controller']['mapping'] = args.mapping
+        _config['controller']['mapping'] = args.mapping
 
-    # xbmc.host
-    # xbmc.webport
-    # xbmc.eventserverport
-    # xbmc.user
-    # xbmc.pass
-    # log.filename
-    # log.level
+    if args.xbmchost:
+        _config['xbmc']['host'] = args.xbmchost
+
+    if args.xbmcwebport:
+        _config['xbmc']['webport'] = args.xbmcwebport
+
+    if args.xbmceventserverport:
+        _config['xbmc']['eventserverport'] = args.xbmceventserverport
+
+    if args.xbmcuser:
+        _config['xbmc']['user'] = args.xbmcuser
+
+    if args.xbmcpass:
+        _config['xbmc']['password'] = args.xbmcpass
+
+    if args.log_file:
+        _config['log']['filename'] = args.log_file
+
+    if args.log_level:
+        _config['log']['level'] = args.log_level
+
+    if not _config['log'].get('filename'):
+        _config['log']['filename'] = getDefaultLogFile()
+
+    if not _config['log'].get('level'):
+        _config['log']['level'] = 'INFO'
 
     return _config
+
+
+def validateConfig(_config):
+    if _config is None:
+        print("broken config")
+        return False
+
+    if _config.get('controller') is None:
+        print("broken config (controller)")
+        return False
+
+    if _config.get('xbmc') is None:
+        print("broken config (xbmc)")
+        return False
+
+    if _config.get('log') is None:
+        print("broken config (log)")
+        return False
+
+    if config['controller'].get('mac') is None:
+        print("broken config (controller.mac)")
+        return False
+
+    if config['controller'].get('mapping') is None:
+        print("broken config (controller.mapping)")
+        return False
+
+    if config['xbmc'].get('host') is None:
+        print("broken config (xbmc.host)")
+        return False
+
+    if config['xbmc'].get('webport') is None:
+        print("broken config (xbmc.webport)")
+        return False
+
+    if config['xbmc'].get('eventserverport') is None:
+        print("broken config (xbmc.eventserverport)")
+        return False
+
+    if config['log'].get('filename') is None:
+        print("broken config (log.filename)")
+        return False
+
+    if config['log'].get('level') is None:
+        print("broken config (log.level)")
+        return False
+
+    return True
 
 
 if __name__ == '__main__':

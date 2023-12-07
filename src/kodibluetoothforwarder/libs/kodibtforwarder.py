@@ -16,51 +16,113 @@
 #
 
 import evdev
+import asyncio
 from socket import *
 
 
 from .common.tools import *
 from .core.xbmcclient import *
 
+
+async def wakeup_loop():
+    while True:
+        await asyncio.sleep(1)
+
+
 class KodiBTForwarder:
 
     def __init__(self, config):
-        self._controller = '08:bf:b8:4a:5f:f6'
-        self._xbmc_host = '192.168.2.113'
-        self._xbmc_port = 9777
-        self._mapping = 'HARMONY_WINDOWS'
+        self._config = config
+        self._xbmc = None
+        self._xbmc_connected = False
+        self._controller = None
+
+    async def ping_eventserver(self):
+        while True:
+            if self._xbmc_connected:
+                self._xbmc.ping()
+
+            await asyncio.sleep(50)
+
+    async def monitorController(self):
+        while True:
+            if self._controller is None:
+                self._controller = getBluetoothController(self._config['controller']['mac'])
+
+            if self._controller is not None and self._xbmc_connected:
+                try:
+                    for event in self._controller.read_loop():
+                        if event.type == evdev.ecodes.EV_KEY:
+                            print(eventCodeToString(event))
+                            print(eventValueToString(event))
+
+                except error as e:
+                    self._controller = None
+
+            await asyncio.sleep(0.5)
+
+    async def checkXBMC(self):
+        while True:
+            if not self._xbmc_connected:
+                pass
+                # TODO: jprc-ping
+                # if available, start event client
+
+
+            if  self._xbmc_connected:
+                pass
+                # TODO: jprc-ping
+                # if not anymore available --> self._xbmc_connected = false
+
+            if not self._xbmc_connected:
+                await asyncio.sleep(0.5)
+            else:
+                await asyncio.sleep(120)
 
     def run(self):
-
-        xbmc = None
+        eventloop = asyncio.get_event_loop()
+        eventloop.create_task(wakeup_loop())
+        eventloop.create_task(self.monitorController())
+        eventloop.create_task(self.checkXBMC())
+        eventloop.create_task(self.ping_eventserver())
 
         try:
-            while True:
-                device = getBluetoothController(self._controller)
-                if device is not None:
-                    xbmc = XBMCClient(host=self._xbmc_host)
-                    xbmc.connect()
-                    xbmc.ping()
-                while device is not None:
-                    for event in device.read_loop():
-                        if event.type == evdev.ecodes.EV_KEY:
-                            # print(eventCodeToString(event))
-                            # print(eventValueToString(event))
-                            if event.value == 0:
-                                xbmc.release_button()
-                            elif event.value == 1:
-                                xbmc.send_button(map='KB', button='up')
-
-
-
-
-                time.sleep(0.5)
-
+            eventloop.run_forever()
         except KeyboardInterrupt:
             pass
 
-        if xbmc is not None:
-            xbmc.close()
+
+    # def run1(self):
+    #
+    #     xbmc = None
+    #
+    #     try:
+    #         while True:
+    #             device = getBluetoothController(self._controller)
+    #             if device is not None:
+    #                 xbmc = XBMCClient(host=self._xbmc_host)
+    #                 xbmc.connect()
+    #                 xbmc.ping()
+    #             while device is not None:
+    #                 for event in device.read_loop():
+    #                     if event.type == evdev.ecodes.EV_KEY:
+    #                         # print(eventCodeToString(event))
+    #                         # print(eventValueToString(event))
+    #                         if event.value == 0:
+    #                             xbmc.release_button()
+    #                         elif event.value == 1:
+    #                             xbmc.send_button(map='KB', button='up')
+    #
+    #
+    #
+    #
+    #             time.sleep(0.5)
+    #
+    #     except KeyboardInterrupt:
+    #         pass
+    #
+    #     if xbmc is not None:
+    #         xbmc.close()
 
 
 
