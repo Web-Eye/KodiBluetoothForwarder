@@ -24,13 +24,13 @@ from .core.xbmcclient import *
 
 class KodiBTForwarder:
 
-    def __init__(self):
+    def __init__(self, config):
         self._controller = '08:bf:b8:4a:5f:f6'
         self._xbmc_host = '192.168.2.113'
         self._xbmc_port = 9777
         self._mapping = 'HARMONY_WINDOWS'
 
-    def start(self):
+    def run(self):
 
         xbmc = None
 
