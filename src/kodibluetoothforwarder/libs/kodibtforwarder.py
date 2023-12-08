@@ -19,9 +19,9 @@ import evdev
 import asyncio
 from socket import *
 
-
 from .common.tools import *
 from .core.xbmcclient import *
+from .core.rpcclient import *
 
 
 async def wakeup_loop():
@@ -49,7 +49,7 @@ class KodiBTForwarder:
             if self._controller is None:
                 self._controller = getBluetoothController(self._config['controller']['mac'])
 
-            if self._controller is not None and self._xbmc_connected:
+            if self._controller is not None:
                 try:
                     for event in self._controller.read_loop():
                         if event.type == evdev.ecodes.EV_KEY:
@@ -62,20 +62,22 @@ class KodiBTForwarder:
             await asyncio.sleep(0.5)
 
     async def checkXBMC(self):
+        host = self._config['XBMC']['host']
+        rclient = rpcclient(host, self._config['XBMC']['webport'])
         while True:
             if not self._xbmc_connected:
-                pass
-                # TODO: jprc-ping
+                if rclient.ping():
+                    self._xbmc = XBMCClient(host=host)
+
                 # if available, start event client
 
 
             if  self._xbmc_connected:
-                pass
-                # TODO: jprc-ping
-                # if not anymore available --> self._xbmc_connected = false
+                if not rclient.ping():
+                    self._xbmc_connected = False
 
             if not self._xbmc_connected:
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(5)
             else:
                 await asyncio.sleep(120)
 
