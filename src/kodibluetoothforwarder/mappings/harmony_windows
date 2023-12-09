@@ -1,0 +1,91 @@
+{
+   "name": "HARMONY_WINDOWS",
+   "mapping": {
+      "KEY_UP": [
+         {
+            "key": "up"
+         }
+      ],
+      "KEY_RIGHT": [
+         {
+            "key": "right"
+         }
+      ],
+      "KEY_DOWN": [
+         {
+            "key": "down"
+         }
+      ],
+      "KEY_LEFT": [
+         {
+            "key": "left"
+         }
+      ],
+      "KEY_KPENTER": [
+         {
+            "key": "enter"
+         }
+      ],
+      "KEY_REWIND": [
+         {
+            "key": "rewind"
+         }
+      ],
+      "KEY_PLAYPAUSE": [
+         {
+            "key": "play_pause"
+         }
+      ],
+      "KEY_FASTFORWARD": [
+         {
+            "key": "FastForward"
+         }
+      ],
+      "KEY_PREVIOUSSONG": [
+         {
+            "key": "SkipPrevious"
+         }
+      ],
+      "KEY_STOPCD": [
+         {
+            "key": "Stop"
+         }
+      ],
+      "KEY_NEXTSONG": [
+         {
+            "key": "SkipNext"
+         }
+      ],
+      "KEY_ESC": [
+         {
+            "key": "Escape"
+         }
+      ],
+      "KEY_HOME": [
+         {
+            "key": "Home"
+         }
+      ],
+      "KEY_VOLUMEUP": [
+         {
+            "key": "volume_up"
+         }
+      ],
+      "KEY_VOLUMEDOWN": [
+         {
+            "key": "volume_down"
+         }
+      ],
+      "KEY_CHANNELUP": [
+         {
+            "key": "pageup"
+         }
+      ],
+      "KEY_CHANNELDOWN": [
+         {
+            "key": "pagedown"
+         }
+      ],
+   }
+}
+
