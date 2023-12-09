@@ -477,7 +477,7 @@ class XBMCClient:
         icon_file -- location of an icon file, if any (png, jpg or gif)
         uid  -- unique identification
         """
-        self.addr = None
+        self.addr = (host, port)
         self.name = str(name)
         self.icon_file = icon_file
         self.icon_type = self._get_icon_type(icon_file)

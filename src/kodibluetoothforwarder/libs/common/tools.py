@@ -23,7 +23,6 @@ def getBluetoothController(mac):
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     for device in devices:
         if device.phys == mac:
-            print(device.path)
             return device
 
     return None

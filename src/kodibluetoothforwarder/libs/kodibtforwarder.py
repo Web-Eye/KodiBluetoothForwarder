@@ -14,10 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import json
 
 import evdev
 import asyncio
 from socket import *
+from os.path import isfile
 
 from .common.tools import *
 from .core.xbmcclient import *
@@ -36,6 +38,7 @@ class KodiBTForwarder:
         self._xbmc = None
         self._xbmc_connected = False
         self._controller = None
+        self._mapping = None
 
     async def ping_eventserver(self):
         while True:
@@ -44,6 +47,14 @@ class KodiBTForwarder:
 
             await asyncio.sleep(50)
 
+    def getMappingEntry(self, key, flags=0):
+        if key in self._mapping:
+            for e in self._mapping[key]:
+                if e['flags'] == flags:
+                    return e
+
+        return None
+
     async def monitorController(self):
         while True:
             if self._controller is None:
@@ -51,10 +62,18 @@ class KodiBTForwarder:
 
             if self._controller is not None:
                 try:
-                    for event in self._controller.read_loop():
+                    async for event in self._controller.async_read_loop():
                         if event.type == evdev.ecodes.EV_KEY:
                             print(eventCodeToString(event))
-                            print(eventValueToString(event))
+                            if self._xbmc_connected:
+                                if event.value != 2:
+                                    entry = self.getMappingEntry(eventCodeToString(event), 0)
+                                    if entry is not None:
+                                        if 'key' in entry and entry['key']:
+                                            if event.value == 0:
+                                                self._xbmc.release_button()
+                                            elif event.value == 1:
+                                                self._xbmc.send_button(map='KB', button=entry['key'])
 
                 except error as e:
                     self._controller = None
@@ -62,26 +81,58 @@ class KodiBTForwarder:
             await asyncio.sleep(0.5)
 
     async def checkXBMC(self):
-        host = self._config['XBMC']['host']
-        rclient = rpcclient(host, self._config['XBMC']['webport'])
+        host = self._config['xbmc']['host']
+        port = self._config['xbmc']['eventserverport']
+        rclient = rpcclient(host, self._config['xbmc']['webport'])
         while True:
-            if not self._xbmc_connected:
-                if rclient.ping():
-                    self._xbmc = XBMCClient(host=host)
+            if self._controller is not None:
+                if not self._xbmc_connected:
+                    if rclient.ping():
+                        self._xbmc = XBMCClient(host=host, port=port)
+                        self._xbmc.connect()
+                        self._xbmc_connected = True
 
-                # if available, start event client
+                else:
+                    if not rclient.ping():
+                        self._xbmc_connected = False
 
+                if not self._xbmc_connected:
+                    await asyncio.sleep(5)
+                else:
+                    await asyncio.sleep(120)
 
-            if  self._xbmc_connected:
-                if not rclient.ping():
-                    self._xbmc_connected = False
-
-            if not self._xbmc_connected:
-                await asyncio.sleep(5)
             else:
-                await asyncio.sleep(120)
+                await asyncio.sleep(0.5)
+
+    def getMapping(self):
+        m = {}
+        cwd = os.path.join(os.getcwd(), 'mappings')
+        for f in os.listdir(cwd):
+            mapping = os.path.join(cwd, f)
+            if isfile(mapping):
+                try:
+                    with open(mapping) as json_data_file:
+                        m = json.load(json_data_file)
+
+                    if 'name' in m:
+                        if m['name'] == self._config['controller']['mapping'] and 'mapping' in m:
+                            self._mapping = m['mapping']
+                            for key in self._mapping:
+                                for e in self._mapping[key]:
+                                    if 'flags' not in e:
+                                        e['flags'] = 0
+                                        # self._mapping[key]['flags'] = 0
+                            return True
+
+                except json.decoder.JSONDecodeError as e:
+                    pass
+
+        return False
 
     def run(self):
+        if not self.getMapping():
+            sys.exit()
+
         eventloop = asyncio.get_event_loop()
         eventloop.create_task(wakeup_loop())
         eventloop.create_task(self.monitorController())
