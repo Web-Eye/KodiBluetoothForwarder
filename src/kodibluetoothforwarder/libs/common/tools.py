@@ -29,7 +29,14 @@ def getBluetoothController(mac):
 
 
 def eventCodeToString(event):
-    return ecodes.KEY[event.code]
+    codes = ecodes.KEY[event.code]
+    t = type(codes)
+    if t is str:
+        return codes
+    elif t is list:
+        return codes[0]
+
+    return None
 
 
 def eventValueToString(event):
