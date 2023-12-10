@@ -28,18 +28,13 @@ class rpcclient:
         p = {"method": "JSONRPC.Ping", "id": _id, "jsonrpc": "2.0"}
 
         try:
-            print("send ping")
             r = requests.post(self._api_url, json=p, timeout=3)
             if r.status_code == 200:
                 return True
             elif r.status_code == 401:
-                print("401")
                 return False
             else:
-                print("else")
                 return False
 
         except os.error as e:
             pass
-
-        print("end ping")
