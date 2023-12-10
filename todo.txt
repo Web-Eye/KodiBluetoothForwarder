@@ -1,0 +1,5 @@
+# todo: Harmony Mute is bound to two bluetooth keys: ['KEY_MIN_INTERESTING', 'KEY_MUTE']
+# todo: proper shutdown
+# todo: implement kodi-actions and specials to mappings
+# todo: implement PowerOn via wol
+# todo: implement PowerOff via Kodi & via (probably ssh)
