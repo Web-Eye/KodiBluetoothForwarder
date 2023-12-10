@@ -14,6 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
+###
+### flags
+### --------------------------------------
+### KEY_LEFTCTRL    --> 0b00000001   (1)
+### KEY_LEFTSHIFT   --> 0b00000010   (2)
+### KEY_RIGHTSHIFT  --> 0b00000100   (4)
+### KEY_LEFTALT     --> 0b00001000   (8)
+### KEY_RIGHTALT    --> 0b00010000  (16)
+### KEY_RIGHTCTRL   --> 0b00100000  (32)
+### KEY_LEFTMETA    --> 0b01000000  (64)
+### KEY_RIGHTMETA   --> 0b10000000 (128)
+
 import json
 
 import evdev
@@ -61,19 +74,26 @@ class KodiBTForwarder:
                 self._controller = getBluetoothController(self._config['controller']['mac'])
 
             if self._controller is not None:
+                flags = 0
                 try:
                     async for event in self._controller.async_read_loop():
                         if event.type == evdev.ecodes.EV_KEY:
-                            print(eventCodeToString(event))
                             if self._xbmc_connected:
                                 if event.value != 2:
-                                    entry = self.getMappingEntry(eventCodeToString(event), 0)
-                                    if entry is not None:
-                                        if 'key' in entry and entry['key']:
-                                            if event.value == 0:
-                                                self._xbmc.release_button()
-                                            elif event.value == 1:
-                                                self._xbmc.send_button(map='KB', button=entry['key'])
+                                    key = eventCodeToString(event)
+                                    key_flag = getKeyFlag(key)
+                                    flags = flags | key_flag
+                                    if key_flag == 0:
+                                        print(flags)
+                                        entry = self.getMappingEntry(eventCodeToString(event), flags)
+                                        if entry is not None:
+                                            if 'key' in entry and entry['key']:
+                                                if event.value == 0:
+                                                    flags = 0
+                                                    self._xbmc.release_button()
+                                                elif event.value == 1:
+                                                    print(key)
+                                                    self._xbmc.send_button(map='KB', button=entry['key'])
 
                 except error as e:
                     self._controller = None

@@ -1,5 +1,4 @@
 
-# todo: finisch harmony mapping
 # todo: proper shutdown
 # todo: implement kodi-actions and specials to mappings
 # todo: implement PowerOn via wol

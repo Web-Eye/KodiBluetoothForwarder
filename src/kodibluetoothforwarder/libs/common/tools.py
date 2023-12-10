@@ -42,3 +42,20 @@ def eventCodeToString(event):
 def eventValueToString(event):
     return ('up', 'down', 'hold')[event.value]
 
+
+def getKeyFlag(key):
+
+    if key in ('KEY_LEFTCTRL', 'KEY_LEFTSHIFT', 'KEY_RIGHTSHIFT', 'KEY_LEFTALT', 'KEY_RIGHTALT', 'KEY_RIGHTCTRL',
+               'KEY_LEFTMETA', 'KEY_RIGHTMETA'):
+        return {
+            'KEY_LEFTCTRL':   0b00000001,
+            'KEY_LEFTSHIFT':  0b00000010,
+            'KEY_RIGHTSHIFT': 0b00000100,
+            'KEY_LEFTALT':    0b00001000,
+            'KEY_RIGHTALT':   0b00010000,
+            'KEY_RIGHTCTRL':  0b00100000,
+            'KEY_LEFTMETA':   0b01000000,
+            'KEY_RIGHTMETA':  0b11000000
+        }[key]
+
+    return 0

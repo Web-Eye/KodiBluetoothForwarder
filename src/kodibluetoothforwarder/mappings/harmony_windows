@@ -86,6 +86,32 @@
             "key": "pagedown"
          }
       ],
+      "KEY_MIN_INTERESTING": [
+         {
+            "key": "volume_mute"
+         }
+      ],
+      "KEY_BACK": [
+         {
+            "key": "backspace"
+         }
+      ],
+      "KEY_O": [
+         {
+            "flags": 33,
+            "key": "k"
+         }
+      ],
+      "KEY_PROGRAM": [
+         {
+            "key": "e"
+         }
+      ],
+      "KEY_I": [
+         {
+            "key": "i"
+         }
+      ]
    }
 }
 
