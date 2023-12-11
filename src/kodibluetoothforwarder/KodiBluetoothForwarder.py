@@ -88,6 +88,9 @@ def getConfig(args):
     if args.xbmcpass:
         _config['xbmc']['password'] = args.xbmcpass
 
+    if args.xbmcmac:
+        _config['xbmc']['mac'] = args.xbmcmac
+
     if args.log_file:
         _config['log']['filename'] = args.log_file
 
@@ -99,6 +102,9 @@ def getConfig(args):
 
     if not _config['log'].get('level'):
         _config['log']['level'] = 'INFO'
+
+    if not _config['xbmc'].get('mac'):
+        _config['xbmc']['mac'] = ''
 
     return _config
 
@@ -193,6 +199,10 @@ if __name__ == '__main__':
 
     parser.add_argument('--xbmcpass',
                         help='xbmc password',
+                        type=str)
+
+    parser.add_argument('--xbmcmac',
+                        help='xbmc mac adress',
                         type=str)
 
     parser.add_argument('--mapping',
