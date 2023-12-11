@@ -1,5 +1,2 @@
+# todo: implement logs
 
-# todo: proper shutdown
-# todo: implement kodi-actions and specials to mappings
-# todo: implement PowerOn via wol
-# todo: implement PowerOff via Kodi & via (probably ssh)
