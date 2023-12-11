@@ -28,9 +28,10 @@
 ### KEY_RIGHTMETA   --> 0b10000000 (128)
 
 import json
-
 import evdev
 import asyncio
+import signal
+
 from socket import *
 from os.path import isfile
 
@@ -78,21 +79,21 @@ class KodiBTForwarder:
                 try:
                     async for event in self._controller.async_read_loop():
                         if event.type == evdev.ecodes.EV_KEY:
-                            if self._xbmc_connected:
-                                if event.value != 2:
-                                    key = eventCodeToString(event)
-                                    key_flag = getKeyFlag(key)
-                                    flags = flags | key_flag
-                                    if key_flag == 0:
-                                        print(flags)
-                                        entry = self.getMappingEntry(eventCodeToString(event), flags)
-                                        if entry is not None:
-                                            if 'key' in entry and entry['key']:
-                                                if event.value == 0:
-                                                    flags = 0
+                            if event.value != 2:
+                                key = eventCodeToString(event)
+                                key_flag = getKeyFlag(key)
+                                flags = flags | key_flag
+                                if key_flag == 0:
+                                    entry = self.getMappingEntry(eventCodeToString(event), flags)
+                                    if entry is not None:
+                                        if 'key' in entry and entry['key']:
+                                            if event.value == 0:
+                                                flags = 0
+                                                if self._xbmc_connected:
                                                     self._xbmc.release_button()
-                                                elif event.value == 1:
-                                                    print(key)
+                                            elif event.value == 1:
+                                                print(key)
+                                                if self._xbmc_connected:
                                                     self._xbmc.send_button(map='KB', button=entry['key'])
 
                 except error as e:
@@ -141,7 +142,7 @@ class KodiBTForwarder:
                                 for e in self._mapping[key]:
                                     if 'flags' not in e:
                                         e['flags'] = 0
-                                        # self._mapping[key]['flags'] = 0
+
                             return True
 
                 except json.decoder.JSONDecodeError as e:
@@ -149,18 +150,40 @@ class KodiBTForwarder:
 
         return False
 
+    async def shutdown(self, signal, loop):
+        # logging.info(f"Received exit signal {signal.name}...")
+        # logging.info("Closing database connections")
+        # logging.info("Nacking outstanding messages")
+        tasks = [t for t in asyncio.all_tasks() if t is not
+                 asyncio.current_task()]
+
+        [task.cancel() for task in tasks]
+
+        # logging.info(f"Cancelling {len(tasks)} outstanding tasks")
+        await asyncio.gather(*tasks, return_exceptions=True)
+        # logging.info(f"Flushing metrics")
+        loop.stop()
+
     def run(self):
         if not self.getMapping():
             sys.exit()
 
         eventloop = asyncio.get_event_loop()
-        eventloop.create_task(wakeup_loop())
-        eventloop.create_task(self.monitorController())
-        eventloop.create_task(self.checkXBMC())
-        eventloop.create_task(self.ping_eventserver())
+        signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
+        for s in signals:
+            eventloop.add_signal_handler(
+                s, lambda s=s: asyncio.create_task(self.shutdown(s, eventloop)))
+        queue = asyncio.Queue()
 
         try:
+            eventloop.create_task(wakeup_loop())
+            eventloop.create_task(self.monitorController())
+            # eventloop.create_task(self.checkXBMC())
+            eventloop.create_task(self.ping_eventserver())
             eventloop.run_forever()
-        except KeyboardInterrupt:
-            pass
+        finally:
+            eventloop.close()
+            # logging.info("Successfully shutdown the Mayhem service.")
 
+
+        
