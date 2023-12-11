@@ -488,7 +488,6 @@ class XBMCClient:
             self.sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
         self.uid = uid
 
-
     def connect(self, host=None, port=None):
         """Initialize connection to XBMC
         ip -- IP Address of XBMC
