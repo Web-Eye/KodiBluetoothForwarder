@@ -38,7 +38,7 @@
       ],
       "KEY_FASTFORWARD": [
          {
-            "key": "FastForward"
+            "action": "Action(FastForward)"
          }
       ],
       "KEY_PREVIOUSSONG": [
