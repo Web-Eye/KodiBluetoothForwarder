@@ -16,6 +16,8 @@
 #
 
 import evdev
+import socket
+import ipaddress
 from evdev import ecodes
 
 
@@ -60,5 +62,42 @@ def getKeyFlag(key):
 
     return 0
 
-# 0x01
-# 0x02
+
+def create_magic_packet(macaddress: str) -> bytes:
+    if len(macaddress) == 17:
+        sep = macaddress[2]
+        macaddress = macaddress.replace(sep, "")
+    elif len(macaddress) == 14:
+        sep = macaddress[4]
+        macaddress = macaddress.replace(sep, "")
+    if len(macaddress) != 12:
+        raise ValueError("Incorrect MAC address format")
+    return bytes.fromhex("F" * 12 + macaddress * 16)
+
+
+def _is_ipv6_address(ip_address: str) -> bool:
+    try:
+        return isinstance(ipaddress.ip_address(ip_address), ipaddress.IPv6Address)
+    except ValueError:
+        return False
+
+
+def sendWOLPackage(mac):
+    BROADCAST_IP = "255.255.255.255"
+    DEFAULT_PORT = 9
+
+    if mac:
+        try:
+            ip_address = BROADCAST_IP
+            port = DEFAULT_PORT
+            packet = create_magic_packet(mac)
+            address_family = (
+                socket.AF_INET6 if _is_ipv6_address(ip_address) else socket.AF_INET
+            )
+            with socket.socket(address_family, socket.SOCK_DGRAM) as sock:
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+                sock.connect((ip_address, port))
+                sock.send(packet)
+
+        finally:
+            pass
