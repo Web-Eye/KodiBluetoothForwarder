@@ -96,10 +96,42 @@ class KodiBTForwarder:
                                                 if self._xbmc_connected:
                                                     self._xbmc.send_button(map='KB', button=entry['key'])
 
+                                        elif 'special' in entry and entry['special']:
+                                            if event.value == 0:
+                                                flags = 0
+                                                self.handleSpecial(entry['special'])
+
+                                        elif 'action' in entry and entry['action']:
+                                            if event.value == 0:
+                                                flags = 0
+                                                self.handleAction(entry['action'])
+
                 except error as e:
                     self._controller = None
 
             await asyncio.sleep(0.5)
+
+    def handleAction(self, cmd):
+        pass
+        # todo: handle special xbmc action
+
+    def handleSpecial(self, cmd):
+        {
+            'PowerOn': self.handlePowerOn,
+            'PowerOff': self.handlePowerOff
+        }[cmd]()
+
+    def handlePowerOn(self):
+        mac_address = self._config['xbmc']['mac']
+        sendWOLPackage(mac_address)
+
+    def handlePowerOff(self):
+        host = self._config['xbmc']['host']
+        port = self._config['xbmc']['webport']
+        rclient = rpcclient(host, port)
+        if not rclient.shutdown():
+            pass
+            # todo : do shutdown via ssh
 
     async def checkXBMC(self):
         host = self._config['xbmc']['host']
