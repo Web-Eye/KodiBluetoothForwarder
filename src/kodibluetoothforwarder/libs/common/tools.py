@@ -48,14 +48,17 @@ def getKeyFlag(key):
     if key in ('KEY_LEFTCTRL', 'KEY_LEFTSHIFT', 'KEY_RIGHTSHIFT', 'KEY_LEFTALT', 'KEY_RIGHTALT', 'KEY_RIGHTCTRL',
                'KEY_LEFTMETA', 'KEY_RIGHTMETA'):
         return {
-            'KEY_LEFTCTRL':   0b00000001,
-            'KEY_LEFTSHIFT':  0b00000010,
-            'KEY_RIGHTSHIFT': 0b00000100,
-            'KEY_LEFTALT':    0b00001000,
-            'KEY_RIGHTALT':   0b00010000,
-            'KEY_RIGHTCTRL':  0b00100000,
-            'KEY_LEFTMETA':   0b01000000,
-            'KEY_RIGHTMETA':  0b11000000
+            'KEY_LEFTCTRL':   0x01,
+            'KEY_LEFTSHIFT':  0x02,
+            'KEY_RIGHTSHIFT': 0x04,
+            'KEY_LEFTALT':    0x08,
+            'KEY_RIGHTALT':   0x10,
+            'KEY_RIGHTCTRL':  0x20,
+            'KEY_LEFTMETA':   0x40,
+            'KEY_RIGHTMETA':  0x80
         }[key]
 
     return 0
+
+# 0x01
+# 0x02
