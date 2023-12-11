@@ -51,6 +51,7 @@ class KodiBTForwarder:
         self._config = config
         self._xbmc = None
         self._xbmc_connected = False
+        self._xbmc_poweron = False
         self._controller = None
         self._mapping = None
 
@@ -89,11 +90,14 @@ class KodiBTForwarder:
                                         if 'key' in entry and entry['key']:
                                             if event.value == 0:
                                                 flags = 0
+                                                self.ConnectXBMC()
                                                 if self._xbmc_connected:
+                                                    print(f'ReleaseKey: {key}')
                                                     self._xbmc.release_button()
                                             elif event.value == 1:
-                                                print(key)
+                                                self.ConnectXBMC()
                                                 if self._xbmc_connected:
+                                                    print(f'PressKey: {key}')
                                                     self._xbmc.send_button(map='KB', button=entry['key'])
 
                                         elif 'special' in entry and entry['special']:
@@ -111,9 +115,21 @@ class KodiBTForwarder:
 
             await asyncio.sleep(0.5)
 
-    def handleAction(self, cmd):
-        pass
-        # todo: handle special xbmc action
+    def ConnectXBMC(self):
+        if not self._xbmc_connected:
+            host = self._config['xbmc']['host']
+            port = self._config['xbmc']['eventserverport']
+            rclient = rpcclient(host, self._config['xbmc']['webport'])
+            if rclient.ping():
+                self._xbmc = XBMCClient(host=host, port=port)
+                # self._xbmc.connect()
+                self._xbmc_connected = True
+
+    def handleAction(self, msg):
+        self.ConnectXBMC()
+        if self._xbmc_connected:
+            print(f'Send: {msg}')
+            self._xbmc.send_action(msg)
 
     def handleSpecial(self, cmd):
         {
@@ -124,6 +140,8 @@ class KodiBTForwarder:
     def handlePowerOn(self):
         mac_address = self._config['xbmc']['mac']
         sendWOLPackage(mac_address)
+        self._xbmc_poweron = True
+        self._xbmc_connected = False
 
     def handlePowerOff(self):
         host = self._config['xbmc']['host']
@@ -133,29 +151,39 @@ class KodiBTForwarder:
             pass
             # todo : do shutdown via ssh
 
+        self._xbmc_poweron = False
+        self._xbmc_connected = False
+
     async def checkXBMC(self):
         host = self._config['xbmc']['host']
-        port = self._config['xbmc']['eventserverport']
+        # port = self._config['xbmc']['eventserverport']
         rclient = rpcclient(host, self._config['xbmc']['webport'])
         while True:
             if self._controller is not None:
-                if not self._xbmc_connected:
-                    if rclient.ping():
-                        self._xbmc = XBMCClient(host=host, port=port)
-                        self._xbmc.connect()
-                        self._xbmc_connected = True
-
-                else:
+                if self._xbmc_connected:
                     if not rclient.ping():
                         self._xbmc_connected = False
 
-                if not self._xbmc_connected:
-                    await asyncio.sleep(5)
-                else:
-                    await asyncio.sleep(120)
+            await asyncio.sleep(120)
 
-            else:
-                await asyncio.sleep(0.5)
+
+            #     if not self._xbmc_connected:
+            #         if rclient.ping():
+            #             self._xbmc = XBMCClient(host=host, port=port)
+            #             self._xbmc.connect()
+            #             self._xbmc_connected = True
+            #
+            #     else:
+            #         if not rclient.ping():
+            #             self._xbmc_connected = False
+            #
+            #     if not self._xbmc_connected:
+            #         await asyncio.sleep(5)
+            #     else:
+            #         await asyncio.sleep(120)
+            #
+            # else:
+            #     await asyncio.sleep(0.5)
 
     def getMapping(self):
         m = {}
@@ -210,7 +238,7 @@ class KodiBTForwarder:
         try:
             eventloop.create_task(wakeup_loop())
             eventloop.create_task(self.monitorController())
-            # eventloop.create_task(self.checkXBMC())
+            eventloop.create_task(self.checkXBMC())
             eventloop.create_task(self.ping_eventserver())
             eventloop.run_forever()
         finally:
