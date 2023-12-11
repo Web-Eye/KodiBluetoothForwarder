@@ -111,6 +111,18 @@
          {
             "key": "i"
          }
+      ],
+      "KEY_8": [
+         {
+            "flags": 57,
+            "special": "PowerOn"
+         }
+      ],
+      "KEY_9": [
+         {
+            "flags": 57,
+            "special": "PowerOff"
+         }
       ]
    }
 }
