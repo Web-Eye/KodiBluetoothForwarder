@@ -47,8 +47,9 @@ async def wakeup_loop():
 
 class KodiBTForwarder:
 
-    def __init__(self, config):
+    def __init__(self, config, logger):
         self._config = config
+        self._logger = logger
         self._xbmc = None
         self._xbmc_connected = False
         self._controller = None
@@ -183,8 +184,10 @@ class KodiBTForwarder:
                             return True
 
                 except json.decoder.JSONDecodeError as e:
-                    pass
+                    self._logger.error(f'getMapping (json.decoder.JSONDecodeError): {str(e)}')
 
+        mp = self._config['controller']['mapping']
+        self._logger.critical(f'getMapping "{mp}" was not found')
         return False
 
     async def shutdown(self, signal, loop):

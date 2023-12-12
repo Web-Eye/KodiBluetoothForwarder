@@ -19,6 +19,8 @@ import sys
 import os
 import json
 import argparse
+import logging
+import logging.handlers
 
 from libs.kodibtforwarder import KodiBTForwarder
 
@@ -109,49 +111,49 @@ def getConfig(args):
     return _config
 
 
-def validateConfig(_config):
+def validateConfig(_config, logger):
     if _config is None:
-        print("broken config")
+        logger.critical("broken config")
         return False
 
     if _config.get('controller') is None:
-        print("broken config (controller)")
+        logger.critical("broken config (controller)")
         return False
 
     if _config.get('xbmc') is None:
-        print("broken config (xbmc)")
+        logger.critical("broken config (xbmc)")
         return False
 
     if _config.get('log') is None:
-        print("broken config (log)")
+        logger.critical("broken config (log)")
         return False
 
     if config['controller'].get('mac') is None:
-        print("broken config (controller.mac)")
+        logger.critical("broken config (controller.mac)")
         return False
 
     if config['controller'].get('mapping') is None:
-        print("broken config (controller.mapping)")
+        logger.critical("broken config (controller.mapping)")
         return False
 
     if config['xbmc'].get('host') is None:
-        print("broken config (xbmc.host)")
+        logger.critical("broken config (xbmc.host)")
         return False
 
     if config['xbmc'].get('webport') is None:
-        print("broken config (xbmc.webport)")
+        logger.critical("broken config (xbmc.webport)")
         return False
 
     if config['xbmc'].get('eventserverport') is None:
-        print("broken config (xbmc.eventserverport)")
+        logger.critical("broken config (xbmc.eventserverport)")
         return False
 
     if config['log'].get('filename') is None:
-        print("broken config (log.filename)")
+        logger.critical("broken config (log.filename)")
         return False
 
     if config['log'].get('level') is None:
-        print("broken config (log.level)")
+        logger.critical("broken config (log.level)")
         return False
 
     return True
@@ -228,9 +230,22 @@ if __name__ == '__main__':
         sys.exit()
 
     config = getConfig(args)
-    if not validateConfig(config):
+
+    logger = logging.getLogger()
+    _log_handler = logging.FileHandler(config['log']['filename'])
+    _str_log_level = config['log']['level']
+    _log_level = getattr(logging, _str_log_level)
+    logger.setLevel(_log_level)
+    _log_handler.setLevel(_log_level)
+
+    _log_format = logging.Formatter('%(asctime)s - %(levelname)-8s - %(message)s')
+    _log_handler.setFormatter(_log_format)
+
+    logger.addHandler(_log_handler)
+
+    if not validateConfig(config, logger):
         sys.exit()
 
-    app = KodiBTForwarder(config)
+    app = KodiBTForwarder(config, logger)
     app.run()
 
