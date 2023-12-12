@@ -1,3 +1,2 @@
 # todo: implement logs
 # todo: remap some buttons, because of kodi issues
-# todo: try to connect after powerOn for 2 minutes

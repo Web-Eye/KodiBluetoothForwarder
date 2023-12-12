@@ -51,7 +51,6 @@ class KodiBTForwarder:
         self._config = config
         self._xbmc = None
         self._xbmc_connected = False
-        self._xbmc_poweron = False
         self._controller = None
         self._mapping = None
 
@@ -140,7 +139,6 @@ class KodiBTForwarder:
     def handlePowerOn(self):
         mac_address = self._config['xbmc']['mac']
         sendWOLPackage(mac_address)
-        self._xbmc_poweron = True
         self._xbmc_connected = False
 
     def handlePowerOff(self):
@@ -151,12 +149,10 @@ class KodiBTForwarder:
             pass
             # todo : do shutdown via ssh
 
-        self._xbmc_poweron = False
         self._xbmc_connected = False
 
     async def checkXBMC(self):
         host = self._config['xbmc']['host']
-        # port = self._config['xbmc']['eventserverport']
         rclient = rpcclient(host, self._config['xbmc']['webport'])
         while True:
             if self._controller is not None:
@@ -165,25 +161,6 @@ class KodiBTForwarder:
                         self._xbmc_connected = False
 
             await asyncio.sleep(120)
-
-
-            #     if not self._xbmc_connected:
-            #         if rclient.ping():
-            #             self._xbmc = XBMCClient(host=host, port=port)
-            #             self._xbmc.connect()
-            #             self._xbmc_connected = True
-            #
-            #     else:
-            #         if not rclient.ping():
-            #             self._xbmc_connected = False
-            #
-            #     if not self._xbmc_connected:
-            #         await asyncio.sleep(5)
-            #     else:
-            #         await asyncio.sleep(120)
-            #
-            # else:
-            #     await asyncio.sleep(0.5)
 
     def getMapping(self):
         m = {}
