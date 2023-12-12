@@ -217,7 +217,7 @@ if __name__ == '__main__':
                         default=getDefaultLogFile(),
                         type=str)
 
-    parser.add_argument('-ll', '--log-level',
+    parser.add_argument('--log-level',
                         dest='log_level',
                         metavar='log level',
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],

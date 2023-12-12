@@ -470,7 +470,7 @@ class XBMCClient:
     """An XBMC event client"""
 
     def __init__(self, name='', icon_file=None, broadcast=False, uid=UNIQUE_IDENTIFICATION, host='127.0.0.1',
-                 port=9777):
+                 port=9777, logger=None):
         """
         Keyword arguments:
         name -- Name of the client
@@ -487,6 +487,7 @@ class XBMCClient:
         if broadcast:
             self.sock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
         self.uid = uid
+        self._logger = logger
 
     def connect(self, host=None, port=None):
         """Initialize connection to XBMC
@@ -500,16 +501,19 @@ class XBMCClient:
         self.addr = (self.host, self.port)
         packet = PacketHELO(self.name, self.icon_type, self.icon_file)
         packet.send(self.sock, self.addr, self.uid)
+        self._logger.debug('XMCClient.send(HELO)')
 
     def close(self):
         """Close the current connection"""
         packet = PacketBYE()
         packet.send(self.sock, self.addr, self.uid)
+        self._logger.debug('XMCClient.send(BYE)')
 
     def ping(self):
         """Send a PING packet"""
         packet = PacketPING()
         packet.send(self.sock, self.addr, self.uid)
+        self._logger.debug('XMCClient.send(PING)')
 
     def send_notification(self, title="", message="", icon_file=None):
         """Send a notification to the connected XBMC
@@ -523,6 +527,7 @@ class XBMCClient:
                                     self._get_icon_type(icon_file),
                                     icon_file)
         packet.send(self.sock, self.addr, self.uid)
+        self._logger.debug('XMCClient.send(NOTIFICATION)')
 
 
     # def send_keyboard_button(self, button=None):
@@ -549,7 +554,7 @@ class XBMCClient:
         """Release all buttons"""
         packet = PacketBUTTON(code=0x01, down=0)
         packet.send(self.sock, self.addr, self.uid)
-
+        self._logger.debug('XMCClient.send(BUTTON)')
 
     def send_button(self, map="", button="", amount=0):
         """Send a button event to XBMC
@@ -571,6 +576,7 @@ class XBMCClient:
         """
         packet = PacketBUTTON(map_name=str(map), button_name=str(button), amount=amount)
         packet.send(self.sock, self.addr, self.uid)
+        self._logger.debug('XMCClient.send(BUTTON)')
 
     def send_button_state(self, map="", button="", amount=0, down=0, axis=0):
         """Send a button event to XBMC

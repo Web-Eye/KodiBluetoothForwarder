@@ -20,19 +20,21 @@ import requests
 
 class rpcclient:
 
-    def __init__(self, host, port):
+    def __init__(self, host, port, logger):
+        self._logger = logger
         self._api_url = "http://%s:%s/jsonrpc" % (host, port)
 
     def ping(self, _id=1):
         p = {"method": "JSONRPC.Ping", "id": _id, "jsonrpc": "2.0"}
 
         try:
+            self._logger.debug(f'sending JSONRPC {p}')
             r = requests.post(self._api_url, json=p, timeout=3)
             if r.status_code == 200:
                 return True
 
         except os.error as e:
-            pass
+            self._logger.debug('Timed out')
 
         return False
 
@@ -40,6 +42,7 @@ class rpcclient:
         p = {"method": "System.Shutdown", "id": _id, "jsonrpc": "2.0"}
 
         try:
+            self._logger.debug(f'sending JSONRPC {p}')
             r = requests.post(self._api_url, json=p, timeout=3)
             if r.status_code == 200:
                 j = r.json()
@@ -47,6 +50,6 @@ class rpcclient:
                     return True
 
         except os.error as e:
-            pass
+            self._logger.debug('Timed out')
 
         return False

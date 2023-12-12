@@ -40,9 +40,9 @@ from .core.xbmcclient import *
 from .core.rpcclient import *
 
 
-async def wakeup_loop():
-    while True:
-        await asyncio.sleep(1)
+# async def wakeup_loop():
+#     while True:
+#         await asyncio.sleep(1)
 
 
 class KodiBTForwarder:
@@ -55,9 +55,15 @@ class KodiBTForwarder:
         self._controller = None
         self._mapping = None
 
+        host = self._config['xbmc']['host']
+        port = self._config['xbmc']['webport']
+        self._rclient = rpcclient(host, port, self._logger)
+
     async def ping_eventserver(self):
+        self._logger.debug('starting ping_eventserver task')
         while True:
             if self._xbmc_connected:
+                self._logger.debug('ping_eventserver: ping')
                 self._xbmc.ping()
 
             await asyncio.sleep(50)
@@ -71,6 +77,7 @@ class KodiBTForwarder:
         return None
 
     async def monitorController(self):
+        self._logger.debug('starting monitorController task')
         while True:
             if self._controller is None:
                 self._controller = getBluetoothController(self._config['controller']['mac'])
@@ -82,6 +89,10 @@ class KodiBTForwarder:
                         if event.type == evdev.ecodes.EV_KEY:
                             if event.value != 2:
                                 key = eventCodeToString(event)
+                                if event.value == 0:
+                                    self._logger.debug(f'Get Bluetooth event [release] key "{key}"')
+                                elif event.value == 1:
+                                    self._logger.debug(f'Get Bluetooth event [press] key "{key}"')
                                 key_flag = getKeyFlag(key)
                                 flags = flags | key_flag
                                 if key_flag == 0:
@@ -92,13 +103,14 @@ class KodiBTForwarder:
                                                 flags = 0
                                                 self.ConnectXBMC()
                                                 if self._xbmc_connected:
-                                                    print(f'ReleaseKey: {key}')
+                                                    self._logger.debug('Bluettoth send release all buttons')
                                                     self._xbmc.release_button()
                                             elif event.value == 1:
                                                 self.ConnectXBMC()
                                                 if self._xbmc_connected:
-                                                    print(f'PressKey: {key}')
-                                                    self._xbmc.send_button(map='KB', button=entry['key'])
+                                                    snd_key = entry['key']
+                                                    self._logger.debug(f'Bluetooth send key "{snd_key}"')
+                                                    self._xbmc.send_button(map='KB', button=snd_key)
 
                                         elif 'special' in entry and entry['special']:
                                             if event.value == 0:
@@ -117,18 +129,19 @@ class KodiBTForwarder:
 
     def ConnectXBMC(self):
         if not self._xbmc_connected:
+            self._logger.debug('try to connect to xbmc')
             host = self._config['xbmc']['host']
             port = self._config['xbmc']['eventserverport']
-            rclient = rpcclient(host, self._config['xbmc']['webport'])
-            if rclient.ping():
-                self._xbmc = XBMCClient(host=host, port=port)
+            if self._rclient.ping():
+                self._xbmc = XBMCClient(host=host, port=port, logger=self._logger)
                 # self._xbmc.connect()
                 self._xbmc_connected = True
+                self._logger.info('XBMC is connected')
 
     def handleAction(self, msg):
         self.ConnectXBMC()
         if self._xbmc_connected:
-            print(f'Send: {msg}')
+            self._logger.debug(f'Send action "{msg}"')
             self._xbmc.send_action(msg)
 
     def handleSpecial(self, cmd):
@@ -138,28 +151,28 @@ class KodiBTForwarder:
         }[cmd]()
 
     def handlePowerOn(self):
+        self._logger.debug(f'Handle special "PowerOn"')
         mac_address = self._config['xbmc']['mac']
         sendWOLPackage(mac_address)
         self._xbmc_connected = False
 
     def handlePowerOff(self):
-        host = self._config['xbmc']['host']
-        port = self._config['xbmc']['webport']
-        rclient = rpcclient(host, port)
-        if not rclient.shutdown():
+        self._logger.debug(f'Handle special "PowerOff"')
+        if not self._rclient.shutdown():
             pass
             # todo : do shutdown via ssh
 
         self._xbmc_connected = False
+        self._logger.info('XBMC is disconnected')
 
     async def checkXBMC(self):
-        host = self._config['xbmc']['host']
-        rclient = rpcclient(host, self._config['xbmc']['webport'])
+        self._logger.debug('starting checkXBMC task')
         while True:
             if self._controller is not None:
                 if self._xbmc_connected:
-                    if not rclient.ping():
+                    if not self._rclient.ping():
                         self._xbmc_connected = False
+                        self._logger.info('XBMC is disconnected')
 
             await asyncio.sleep(120)
 
@@ -191,22 +204,21 @@ class KodiBTForwarder:
         return False
 
     async def shutdown(self, signal, loop):
-        # logging.info(f"Received exit signal {signal.name}...")
-        # logging.info("Closing database connections")
-        # logging.info("Nacking outstanding messages")
+        self._logger.info(f'Received exit signal {signal.name}...')
+        self._logger.debug('shutting down tasks')
         tasks = [t for t in asyncio.all_tasks() if t is not
                  asyncio.current_task()]
 
         [task.cancel() for task in tasks]
 
-        # logging.info(f"Cancelling {len(tasks)} outstanding tasks")
         await asyncio.gather(*tasks, return_exceptions=True)
-        # logging.info(f"Flushing metrics")
         loop.stop()
 
     def run(self):
         if not self.getMapping():
             sys.exit()
+
+        self._logger.info('starting [Kodi Bluetooth Forwarder] servive.')
 
         eventloop = asyncio.get_event_loop()
         signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
@@ -216,14 +228,14 @@ class KodiBTForwarder:
         queue = asyncio.Queue()
 
         try:
-            eventloop.create_task(wakeup_loop())
+            # eventloop.create_task(wakeup_loop())
             eventloop.create_task(self.monitorController())
             eventloop.create_task(self.checkXBMC())
             eventloop.create_task(self.ping_eventserver())
             eventloop.run_forever()
         finally:
             eventloop.close()
-            # logging.info("Successfully shutdown the Mayhem service.")
+            self._logger.info("Successfully shutdown [Kodi Bluetooth Forwarder] service.")
 
 
         
