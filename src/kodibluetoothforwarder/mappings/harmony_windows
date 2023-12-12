@@ -28,7 +28,7 @@
       ],
       "KEY_REWIND": [
          {
-            "key": "rewind"
+            "action": "Action(Rewind)"
          }
       ],
       "KEY_PLAYPAUSE": [
@@ -58,12 +58,12 @@
       ],
       "KEY_ESC": [
          {
-            "key": "Escape"
+            "action": "Action(ContextMenu)"
          }
       ],
       "KEY_HOME": [
          {
-            "key": "Home"
+            "key": "Escape"
          }
       ],
       "KEY_VOLUMEUP": [
@@ -78,12 +78,12 @@
       ],
       "KEY_CHANNELUP": [
          {
-            "key": "pageup"
+            "action": "Action(PageUp)"
          }
       ],
       "KEY_CHANNELDOWN": [
          {
-            "key": "pagedown"
+            "action": "Action(PageDown)"
          }
       ],
       "KEY_MIN_INTERESTING": [

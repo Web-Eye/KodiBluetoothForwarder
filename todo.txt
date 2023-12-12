@@ -1,2 +1,1 @@
-# todo: implement logs
-# todo: remap some buttons, because of kodi issues
+
