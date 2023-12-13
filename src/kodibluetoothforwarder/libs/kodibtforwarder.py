@@ -94,7 +94,9 @@ class KodiBTForwarder:
                                 elif event.value == 1:
                                     self._logger.debug(f'Get Bluetooth event [press] key "{key}"')
                                 key_flag = getKeyFlag(key)
+                                self._logger.debug(f'key_flag: {key_flag}; flags: {flags}; flags | key_flag: {flags | key_flag}')
                                 flags = flags | key_flag
+
                                 if key_flag == 0:
                                     entry = self.getMappingEntry(eventCodeToString(event), flags)
                                     if entry is not None:
