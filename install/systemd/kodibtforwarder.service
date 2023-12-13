@@ -1,0 +1,11 @@
+
+[Unit]
+Description=Kodi Bluetooth Forwarder
+After=network.target
+
+[Service]
+User=root
+ExecStart=python3 /opt/kodibluetoothforwarder/KodiBluetoothForwarder.py --xbmchost 192.168.2.114 --log-level DEBUG
+
+[Install]
+WantedBy=default.target
