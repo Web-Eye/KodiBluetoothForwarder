@@ -19,7 +19,6 @@ import sys
 import os
 import json
 import argparse
-import logging
 import logging.handlers
 
 from libs.kodibtforwarder import KodiBTForwarder
