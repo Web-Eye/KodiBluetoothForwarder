@@ -112,6 +112,30 @@
             "key": "i"
          }
       ],
+      "KEY_C": [
+         {
+            "flags": 2,
+            "key": "i"
+         }
+      ],
+      "KEY_D": [
+         {
+            "flags": 2,
+            "key": "i"
+         }
+      ],
+      "KEY_A": [
+         {
+            "flags": 2,
+            "key": "i"
+         }
+      ],
+      "KEY_B": [
+         {
+            "flags": 2,
+            "key": "i"
+         }
+      ],
       "KEY_8": [
          {
             "flags": 57,
