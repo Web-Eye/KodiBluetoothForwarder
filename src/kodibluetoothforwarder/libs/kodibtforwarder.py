@@ -218,7 +218,7 @@ class KodiBTForwarder:
         if not self.getMapping():
             sys.exit()
 
-        self._logger.info('starting [Kodi Bluetooth Forwarder] servive.')
+        self._logger.info('starting [Kodi Bluetooth Forwarder] service.')
 
         eventloop = asyncio.get_event_loop()
         signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
