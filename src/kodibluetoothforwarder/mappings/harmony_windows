@@ -43,7 +43,7 @@
       ],
       "KEY_PREVIOUSSONG": [
          {
-            "key": "SkipPrevious"
+            "action": "Action(SkipPrevious)"
          }
       ],
       "KEY_STOPCD": [
@@ -53,7 +53,7 @@
       ],
       "KEY_NEXTSONG": [
          {
-            "key": "SkipNext"
+            "action": "Action(SkipNext)"
          }
       ],
       "KEY_ESC": [
@@ -78,11 +78,21 @@
       ],
       "KEY_CHANNELUP": [
          {
+            "type": "PRESS",
+            "action": "Action(PageUp)"
+         },
+         {
+            "type": "HOLD",
             "action": "Action(PageUp)"
          }
       ],
       "KEY_CHANNELDOWN": [
          {
+            "type": "PRESS",
+            "action": "Action(PageDown)"
+         },
+         {
+            "type": "HOLD",
             "action": "Action(PageDown)"
          }
       ],
@@ -115,25 +125,25 @@
       "KEY_C": [
          {
             "flags": 2,
-            "key": "i"
+            "action": "Action(red)"
          }
       ],
       "KEY_D": [
          {
             "flags": 2,
-            "key": "i"
+            "action": "Action(green)"
          }
       ],
       "KEY_A": [
          {
             "flags": 2,
-            "key": "i"
+            "action": "Action(yellow)"
          }
       ],
       "KEY_B": [
          {
             "flags": 2,
-            "key": "i"
+            "action": "Action(blue)"
          }
       ],
       "KEY_8": [
