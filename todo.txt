@@ -1,4 +1,2 @@
-# todo: bug, if key isn't found in mapping, flags must resetted to "0"
 # todo: proper shutdown via ssh
 # todo: proper README.md
-# todo: at actions fire action to Kodi at event hold as well

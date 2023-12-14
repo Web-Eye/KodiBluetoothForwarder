@@ -68,10 +68,10 @@ class KodiBTForwarder:
 
             await asyncio.sleep(50)
 
-    def getMappingEntry(self, key, flags=0):
+    def getMappingEntry(self, key, flags=0, eventType='RELEASE'):
         if key in self._mapping:
             for e in self._mapping[key]:
-                if e['flags'] == flags:
+                if e['flags'] == flags and e['type'] == eventType:
                     return e
 
         return None
@@ -84,45 +84,57 @@ class KodiBTForwarder:
 
             if self._controller is not None:
                 flags = 0
+                last_event = 0
                 try:
                     async for event in self._controller.async_read_loop():
                         if event.type == evdev.ecodes.EV_KEY:
-                            if event.value != 2:
-                                key = eventCodeToString(event)
-                                if event.value == 0:
-                                    self._logger.debug(f'Get Bluetooth event [release] key "{key}"')
-                                elif event.value == 1:
-                                    self._logger.debug(f'Get Bluetooth event [press] key "{key}"')
-                                key_flag = getKeyFlag(key)
-                                self._logger.debug(f'key_flag: {key_flag}; flags: {flags}; flags | key_flag: {flags | key_flag}')
-                                flags = flags | key_flag
+                            key, key_flag, event_type = getEventData(event)
+                            flags = flags | key_flag
+                            if key_flag == 0:
+                                self._logger.debug(f'Get Bluetooth event [{event_type}] key "{key}" ({flags})')
 
-                                if key_flag == 0:
-                                    entry = self.getMappingEntry(eventCodeToString(event), flags)
-                                    if entry is not None:
-                                        if 'key' in entry and entry['key']:
-                                            if event.value == 0:
-                                                flags = 0
-                                                self.ConnectXBMC()
-                                                if self._xbmc_connected:
-                                                    self._logger.debug('Bluettoth send release all buttons')
-                                                    self._xbmc.release_button()
-                                            elif event.value == 1:
-                                                self.ConnectXBMC()
-                                                if self._xbmc_connected:
-                                                    snd_key = entry['key']
-                                                    self._logger.debug(f'Bluetooth send key "{snd_key}"')
-                                                    self._xbmc.send_button(map='KB', button=snd_key)
+                                entry = self.getMappingEntry(key, flags, event_type)
+                                if entry is not None:
+                                    if 'key' in entry and entry['key']:
+                                        if event_type == 'PRESS' or event_type == 'HOLD':
+                                            self.ConnectXBMC()
+                                            if self._xbmc_connected:
+                                                last_event = 1
+                                                snd_key = entry['key']
+                                                self._logger.debug(f'Bluetooth send key "{snd_key}"')
+                                                self._xbmc.send_button(map='KB', button=snd_key)
 
-                                        elif 'special' in entry and entry['special']:
-                                            if event.value == 0:
-                                                flags = 0
-                                                self.handleSpecial(entry['special'])
+                                        elif event_type == 'RELEASE':
+                                            flags = 0
+                                            last_event = 0
+                                            self.ConnectXBMC()
+                                            if self._xbmc_connected:
+                                                snd_key = entry['key']
+                                                self._logger.debug(f'Bluetooth send key "{snd_key}"')
+                                                self._xbmc.send_button(map='KB', button=snd_key)
+                                                self._logger.debug('Bluetooth send release all buttons')
+                                                self._xbmc.release_button()
 
-                                        elif 'action' in entry and entry['action']:
-                                            if event.value == 0:
-                                                flags = 0
-                                                self.handleAction(entry['action'])
+                                    elif 'special' in entry and entry['special']:
+                                        flags = 0
+                                        last_event = 0
+                                        self.handleSpecial(entry['special'])
+
+                                    elif 'action' in entry and entry['action']:
+                                        flags = 0
+                                        last_event = 0
+                                        self.handleAction(entry['action'])
+
+                                else:
+                                    flags = 0
+                                    if event_type == 'RELEASE':
+                                        flags = 0
+                                        if last_event == 1:
+                                            last_event = 0
+                                            self.ConnectXBMC()
+                                            if self._xbmc_connected:
+                                                self._logger.debug('Bluetooth send release all buttons')
+                                                self._xbmc.release_button()
 
                 except error as e:
                     self._controller = None
@@ -195,6 +207,9 @@ class KodiBTForwarder:
                                 for e in self._mapping[key]:
                                     if 'flags' not in e:
                                         e['flags'] = 0
+                                    if 'type' not in e:
+                                        if 'key' in e:
+                                            e['type'] = 'PRESS'
 
                             return True
 

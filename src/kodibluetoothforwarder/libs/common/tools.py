@@ -42,7 +42,7 @@ def eventCodeToString(event):
 
 
 def eventValueToString(event):
-    return ('up', 'down', 'hold')[event.value]
+    return ('RELEASE', 'PRESS', 'HOLD')[event.value]
 
 
 def getKeyFlag(key):
@@ -61,6 +61,13 @@ def getKeyFlag(key):
         }[key]
 
     return 0
+
+
+def getEventData(event):
+    key = eventCodeToString(event)
+    flag = getKeyFlag(key)
+    eValue = eventValueToString(event)
+    return key, flag, eValue
 
 
 def create_magic_packet(macaddress: str) -> bytes:
