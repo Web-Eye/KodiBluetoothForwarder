@@ -89,6 +89,7 @@ class KodiBTForwarder:
                     async for event in self._controller.async_read_loop():
                         if event.type == evdev.ecodes.EV_KEY:
                             key, key_flag, event_type = getEventData(event)
+                            self._logger.debug(f'key: {key}; key_flag: {key_flag}; event_type: {event_type}')
                             flags = flags | key_flag
                             if key_flag == 0:
                                 self._logger.debug(f'Get Bluetooth event [{event_type}] key "{key}" ({flags})')
@@ -208,8 +209,7 @@ class KodiBTForwarder:
                                     if 'flags' not in e:
                                         e['flags'] = 0
                                     if 'type' not in e:
-                                        if 'key' in e:
-                                            e['type'] = 'PRESS'
+                                        e['type'] = 'PRESS'
 
                             return True
 

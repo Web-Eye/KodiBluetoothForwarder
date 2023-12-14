@@ -230,7 +230,7 @@ if __name__ == '__main__':
 
     config = getConfig(args)
 
-    logger = logging.getLogger()
+    logger = logging.getLogger('kodibtforwarder')
     _log_handler = logging.FileHandler(config['log']['filename'])
     _str_log_level = config['log']['level']
     _log_level = getattr(logging, _str_log_level)
