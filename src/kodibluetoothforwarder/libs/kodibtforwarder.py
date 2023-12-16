@@ -196,7 +196,7 @@ class KodiBTForwarder:
         cwd = os.path.join(os.getcwd(), 'mappings')
         for f in os.listdir(cwd):
             mapping = os.path.join(cwd, f)
-            if isfile(mapping):
+            if isfile(mapping) and mapping[-1] != '~':
                 try:
                     with open(mapping) as json_data_file:
                         m = json.load(json_data_file)
