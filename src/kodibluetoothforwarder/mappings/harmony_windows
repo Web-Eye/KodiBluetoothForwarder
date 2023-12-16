@@ -63,7 +63,7 @@
       ],
       "KEY_HOME": [
          {
-            "key": "Escape"
+            "key": "escape"
          }
       ],
       "KEY_VOLUMEUP": [
@@ -125,25 +125,25 @@
       "KEY_C": [
          {
             "flags": 2,
-            "action": "Action(red)"
+            "key": "red"
          }
       ],
       "KEY_D": [
          {
             "flags": 2,
-            "action": "Action(green)"
+            "key": "green"
          }
       ],
       "KEY_A": [
          {
             "flags": 2,
-            "action": "Action(yellow)"
+            "key": "yellow"
          }
       ],
       "KEY_B": [
          {
             "flags": 2,
-            "action": "Action(blue)"
+            "key": "blue"
          }
       ],
       "KEY_8": [
