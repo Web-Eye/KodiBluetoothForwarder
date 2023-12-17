@@ -1,2 +1,3 @@
 # todo: proper shutdown via ssh
 # todo: proper README.md
+# todo: try to disconnect bluetooth after shutdown device (found only cmd:  bluetoothctl disconnect)
