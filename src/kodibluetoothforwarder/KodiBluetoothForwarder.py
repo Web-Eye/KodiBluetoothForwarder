@@ -92,6 +92,12 @@ def getConfig(args):
     if args.xbmcmac:
         _config['xbmc']['mac'] = args.xbmcmac
 
+    if args.xbmcsshport:
+        if 'ssh' not in _config['xbmc']:
+            _config['xbmc']['ssh'] = {}
+
+        _config['xbmc']['ssh']['port'] = args.xbmcsshport
+
     if args.xbmcsshuser:
         if 'ssh' not in _config['xbmc']:
             _config['xbmc']['ssh'] = {}
@@ -118,6 +124,10 @@ def getConfig(args):
 
     if not _config['xbmc'].get('mac'):
         _config['xbmc']['mac'] = ''
+
+    if  _config['xbmc'].get('ssh'):
+        if not _config['xbmc']['ssh'].get('port'):
+            _config['xbmc']['ssh']['port'] = 22
 
     return _config
 
@@ -217,6 +227,10 @@ if __name__ == '__main__':
     parser.add_argument('--xbmcmac',
                         help='xbmc mac adress',
                         type=str)
+
+    parser.add_argument('--xbmcsshport',
+                        help='xbmc ssh port',
+                        type=int)
 
     parser.add_argument('--xbmcsshuser',
                         help='xbmc ssh username',
