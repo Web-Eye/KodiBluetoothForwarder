@@ -31,6 +31,7 @@ import json
 import evdev
 import asyncio
 import signal
+import paramiko
 
 from socket import *
 from os.path import isfile
@@ -174,8 +175,17 @@ class KodiBTForwarder:
     def handlePowerOff(self):
         self._logger.debug(f'Handle special "PowerOff"')
         if not self._rclient.shutdown():
-            pass
-            # todo : do shutdown via ssh
+            if self._config['xbmc']['ssh'] is not None:
+                hostname = self._config['xbmc']['host']
+                port = self._config['xbmc']['ssh']['port']
+                username = self._config['xbmc']['ssh']['username']
+                password = self._config['xbmc']['ssh']['password']
+
+                ssh_client = paramiko.SSHClient()
+                ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                ssh_client.connect(hostname=hostname, port=port, username=username, password=password)
+                stdin, stdout, stderr = ssh_client.exec_command('sudo shutdown now')
+                stdin.write(f'{password}\n')
 
         self._xbmc_connected = False
         self._logger.info('XBMC is disconnected')

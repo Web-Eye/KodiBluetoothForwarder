@@ -12,3 +12,4 @@ socket
 requests
 struct
 time
+paramiko
