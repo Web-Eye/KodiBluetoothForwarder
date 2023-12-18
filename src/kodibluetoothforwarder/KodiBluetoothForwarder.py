@@ -92,6 +92,18 @@ def getConfig(args):
     if args.xbmcmac:
         _config['xbmc']['mac'] = args.xbmcmac
 
+    if args.xbmcsshuser:
+        if 'ssh' not in _config['xbmc']:
+            _config['xbmc']['ssh'] = {}
+
+        _config['xbmc']['ssh']['username'] = args.xbmcsshuser
+
+    if args.xbmcsshpass:
+        if 'ssh' not in _config['xbmc']:
+            _config['xbmc']['ssh'] = {}
+
+        _config['xbmc']['ssh']['password'] = args.xbmcsshpass
+
     if args.log_file:
         _config['log']['filename'] = args.log_file
 
@@ -204,6 +216,14 @@ if __name__ == '__main__':
 
     parser.add_argument('--xbmcmac',
                         help='xbmc mac adress',
+                        type=str)
+
+    parser.add_argument('--xbmcsshuser',
+                        help='xbmc ssh username',
+                        type=str)
+
+    parser.add_argument('--xbmcsshpass',
+                        help='xbmc ssh password',
                         type=str)
 
     parser.add_argument('--mapping',
