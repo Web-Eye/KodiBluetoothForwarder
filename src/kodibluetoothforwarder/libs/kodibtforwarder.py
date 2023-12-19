@@ -35,6 +35,7 @@ import paramiko
 
 from socket import *
 from os.path import isfile
+from datetime import datetime
 
 from .common.tools import *
 from .core.xbmcclient import *
@@ -55,6 +56,8 @@ class KodiBTForwarder:
         self._xbmc_connected = False
         self._controller = None
         self._mapping = None
+        self._lstPowerOnTimestamp = None
+        self._lstPowerOffTimestamp = None
 
         host = self._config['xbmc']['host']
         port = self._config['xbmc']['webport']
@@ -150,7 +153,6 @@ class KodiBTForwarder:
             port = self._config['xbmc']['eventserverport']
             if self._rclient.ping():
                 self._xbmc = XBMCClient(host=host, port=port, logger=self._logger)
-                # self._xbmc.connect()
                 self._xbmc_connected = True
                 self._logger.info('XBMC is connected')
 
@@ -167,28 +169,32 @@ class KodiBTForwarder:
         }[cmd]()
 
     def handlePowerOn(self):
-        self._logger.debug(f'Handle special "PowerOn"')
-        mac_address = self._config['xbmc']['mac']
-        sendWOLPackage(mac_address)
-        self._xbmc_connected = False
+        if self._lstPowerOnTimestamp is None or datetime.now() - self._lstPowerOnTimestamp > 30:
+            self._lstPowerOnTimestamp = datetime.now()
+            self._logger.debug(f'Handle special "PowerOn"')
+            mac_address = self._config['xbmc']['mac']
+            sendWOLPackage(mac_address)
+            self._xbmc_connected = False
 
     def handlePowerOff(self):
-        self._logger.debug(f'Handle special "PowerOff"')
-        if not self._rclient.shutdown():
-            if self._config['xbmc']['ssh'] is not None:
-                hostname = self._config['xbmc']['host']
-                port = self._config['xbmc']['ssh']['port']
-                username = self._config['xbmc']['ssh']['username']
-                password = self._config['xbmc']['ssh']['password']
+        if self._lstPowerOffTimestamp is None or datetime.now() - self._lstPowerOffTimestamp > 30:
+            self._lstPowerOffTimestamp = datetime.now()
+            self._logger.debug(f'Handle special "PowerOff"')
+            if not self._rclient.shutdown():
+                if self._config['xbmc']['ssh'] is not None:
+                    hostname = self._config['xbmc']['host']
+                    port = self._config['xbmc']['ssh']['port']
+                    username = self._config['xbmc']['ssh']['username']
+                    password = self._config['xbmc']['ssh']['password']
 
-                ssh_client = paramiko.SSHClient()
-                ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                ssh_client.connect(hostname=hostname, port=port, username=username, password=password)
-                stdin, stdout, stderr = ssh_client.exec_command('sudo shutdown now')
-                stdin.write(f'{password}\n')
+                    ssh_client = paramiko.SSHClient()
+                    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                    ssh_client.connect(hostname=hostname, port=port, username=username, password=password)
+                    stdin, stdout, stderr = ssh_client.exec_command('sudo shutdown now')
+                    stdin.write(f'{password}\n')
 
-        self._xbmc_connected = False
-        self._logger.info('XBMC is disconnected')
+            self._xbmc_connected = False
+            self._logger.info('XBMC is disconnected')
 
     async def checkXBMC(self):
         self._logger.debug('starting checkXBMC task')
