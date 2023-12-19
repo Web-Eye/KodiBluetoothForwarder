@@ -35,7 +35,7 @@ import paramiko
 
 from socket import *
 from os.path import isfile
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from .common.tools import *
 from .core.xbmcclient import *
@@ -58,6 +58,7 @@ class KodiBTForwarder:
         self._mapping = None
         self._lstPowerOnTimestamp = None
         self._lstPowerOffTimestamp = None
+        self._special_timeout = timedelta(seconds=30)
 
         host = self._config['xbmc']['host']
         port = self._config['xbmc']['webport']
@@ -169,7 +170,7 @@ class KodiBTForwarder:
         }[cmd]()
 
     def handlePowerOn(self):
-        if self._lstPowerOnTimestamp is None or datetime.now() - self._lstPowerOnTimestamp > 30:
+        if self._lstPowerOnTimestamp is None or datetime.now() - self._lstPowerOnTimestamp > self._special_timeout:
             self._lstPowerOnTimestamp = datetime.now()
             self._logger.debug(f'Handle special "PowerOn"')
             mac_address = self._config['xbmc']['mac']
@@ -177,7 +178,7 @@ class KodiBTForwarder:
             self._xbmc_connected = False
 
     def handlePowerOff(self):
-        if self._lstPowerOffTimestamp is None or datetime.now() - self._lstPowerOffTimestamp > 30:
+        if self._lstPowerOffTimestamp is None or datetime.now() - self._lstPowerOffTimestamp > self._special_timeout:
             self._lstPowerOffTimestamp = datetime.now()
             self._logger.debug(f'Handle special "PowerOff"')
             if not self._rclient.shutdown():
