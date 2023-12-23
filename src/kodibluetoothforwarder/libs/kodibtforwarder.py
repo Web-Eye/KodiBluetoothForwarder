@@ -201,14 +201,15 @@ class KodiBTForwarder:
                         self._logger.debug(f'sshclient.connect {hostname}:{port} via {username}:{password}')
                         ssh_client.connect(hostname=hostname, port=port, username=username, password=password)
                         self._logger.debug(f'sshclient.send "sudo shutdown now"')
-                        stdin, stdout, stderr = ssh_client.exec_command('sudo shutdown now')
-                        if stdout is not None:
-                            self._logger.debug(f'sshclient.receive (stdout): "{stdout}"')
-                        if stderr is not None:
-                            self._logger.debug(f'sshclient.receive (stderr): "{stderr}"')
-
+                        stdin, stdout, stderr = ssh_client.exec_command("sudo  -S -p '' shutdown now")
                         self._logger.debug(f'sshclient.send "{password}"')
                         stdin.write(f'{password}\n')
+                        stdin.flush()
+
+                        if stdout is not None:
+                            self._logger.debug(f'sshclient.receive (stdout): "{stdout.readlines()}"')
+                        if stderr is not None:
+                            self._logger.debug(f'sshclient.receive (stderr): "{stderr.readlines()}"')
 
                     except paramiko.ssh_exception.BadHostKeyException as badhostEx:
                         self._logger.error(f'BadHostKeyException: {badhostEx}')
