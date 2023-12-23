@@ -28,10 +28,13 @@
 ### KEY_RIGHTMETA   --> 0b10000000 (128)
 
 import json
+import socket
+
 import evdev
 import asyncio
 import signal
 import paramiko
+import subprocess
 
 from socket import *
 from os.path import isfile
@@ -187,15 +190,47 @@ class KodiBTForwarder:
                     port = self._config['xbmc']['ssh']['port']
                     username = self._config['xbmc']['ssh']['username']
                     password = self._config['xbmc']['ssh']['password']
+                    self._logger.info('perform Shutdown via sshclient')
 
+                    self._logger.debug('setup sshclient')
                     ssh_client = paramiko.SSHClient()
+                    self._logger.debug('add host key policy to sshclient')
                     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                    ssh_client.connect(hostname=hostname, port=port, username=username, password=password)
-                    stdin, stdout, stderr = ssh_client.exec_command('sudo shutdown now')
-                    stdin.write(f'{password}\n')
+
+                    try:
+                        self._logger.debug(f'sshclient.connect {hostname}:{port} via {username}:{password}')
+                        ssh_client.connect(hostname=hostname, port=port, username=username, password=password)
+                        self._logger.debug(f'sshclient.send "sudo shutdown now"')
+                        stdin, stdout, stderr = ssh_client.exec_command('sudo shutdown now')
+                        if stdout is not None:
+                            self._logger.debug(f'sshclient.receive (stdout): "{stdout}"')
+                        if stderr is not None:
+                            self._logger.debug(f'sshclient.receive (stderr): "{stderr}"')
+
+                        self._logger.debug(f'sshclient.send "{password}"')
+                        stdin.write(f'{password}\n')
+
+                    except paramiko.ssh_exception.BadHostKeyException as badhostEx:
+                        self._logger.error(f'BadHostKeyException: {badhostEx}')
+
+                    except paramiko.ssh_exception.AuthenticationException as authEx:
+                        self._logger.error(f'AuthenticationException: {authEx}')
+
+                    except paramiko.ssh_exception.UnableToAuthenticate as unableEx:
+                        self._logger.error(f'UnableToAuthenticate: {unableEx}')
+
+                    except socket.error as socketEx:
+                        self._logger.error(f'socket.error: {socketEx}')
+
+                    except paramiko.ssh_exception.NoValidConnectionsError as novalidConEx:
+                        self._logger.error(f'NoValidConnectionsError: {novalidConEx}')
+
+                    except paramiko.ssh_exception.SSHException as sshEx:
+                        self._logger.error(f'SSHException: {sshEx}')
 
             self._xbmc_connected = False
             self._logger.info('XBMC is disconnected')
+            self.disconnectController()
 
     async def checkXBMC(self):
         self._logger.debug('starting checkXBMC task')
@@ -205,8 +240,24 @@ class KodiBTForwarder:
                     if not self._rclient.ping():
                         self._xbmc_connected = False
                         self._logger.info('XBMC is disconnected')
+                        self.disconnectController()
 
             await asyncio.sleep(120)
+
+    def disconnectController(self):
+        command = ['bluetoothctl', 'disconnect', self._config['controller']['mac']]
+        self._logger.debug('run bluetoothctl to disconnect device')
+        try:
+            process = subprocess.run(command, capture_output=True, text=True)
+            err = process.returncode
+            if err != 0:
+                self._logger.debug(f'stderr: {process.stderr}')
+            else:
+                self._logger.debug(f'stdout: {process.stdout}')
+
+        except FileNotFoundError as ex:
+            self._logger.debug('command not found')
+            return False
 
     def getMapping(self):
         m = {}

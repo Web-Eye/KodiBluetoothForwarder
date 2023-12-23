@@ -14,3 +14,4 @@ requests
 struct
 time
 paramiko
+subprocess
