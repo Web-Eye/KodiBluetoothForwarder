@@ -190,6 +190,7 @@ class KodiBTForwarder:
                     port = self._config['xbmc']['ssh']['port']
                     username = self._config['xbmc']['ssh']['username']
                     password = self._config['xbmc']['ssh']['password']
+                    sudo_password = self._config['xbmc']['ssh']['sudo_password']
                     self._logger.info('perform Shutdown via sshclient')
 
                     self._logger.debug('setup sshclient')
@@ -202,8 +203,8 @@ class KodiBTForwarder:
                         ssh_client.connect(hostname=hostname, port=port, username=username, password=password)
                         self._logger.debug(f'sshclient.send "sudo shutdown now"')
                         stdin, stdout, stderr = ssh_client.exec_command("sudo  -S -p '' shutdown now")
-                        self._logger.debug(f'sshclient.send "{password}"')
-                        stdin.write(f'{password}\n')
+                        self._logger.debug(f'sshclient.send "{sudo_password}"')
+                        stdin.write(f'{sudo_password}\n')
                         stdin.flush()
 
                         if stdout is not None:
