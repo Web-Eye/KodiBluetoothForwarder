@@ -39,7 +39,7 @@ class rpcclient:
         return False
 
     def shutdown(self, _id=1):
-        p = {"method": "System.Powerdown", "id": _id, "jsonrpc": "2.0"}
+        p = {"method": "System.Shutdown", "id": _id, "jsonrpc": "2.0"}
 
         try:
             self._logger.debug(f'sending JSONRPC {p}')
