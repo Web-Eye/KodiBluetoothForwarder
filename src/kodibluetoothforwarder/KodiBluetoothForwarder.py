@@ -264,7 +264,6 @@ if __name__ == '__main__':
                         dest='log_level',
                         metavar='log level',
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
-                        default='INFO',
                         type=str)
 
     try:
