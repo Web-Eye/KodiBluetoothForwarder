@@ -128,6 +128,15 @@ def getConfig(args):
     if not _config['log'].get('level'):
         _config['log']['level'] = 'INFO'
 
+    if not _config['xbmc'].get('host'):
+        _config['xbmc']['host'] = '127.0.0.1'
+
+    if not _config['xbmc'].get('webport'):
+        _config['xbmc']['webport'] = 8080
+
+    if not _config['xbmc'].get('eventserverport'):
+        _config['xbmc']['eventserverport'] = 9777
+
     if not _config['xbmc'].get('mac'):
         _config['xbmc']['mac'] = ''
 
@@ -209,17 +218,14 @@ if __name__ == '__main__':
 
     parser.add_argument('--xbmchost',
                         help='xbmc host (default=127.0.0.1)',
-                        default='127.0.0.1',
                         type=str)
 
     parser.add_argument('--xbmcwebport',
                         help='xbmc web port (default=8080)',
-                        default=8080,
                         type=int)
 
     parser.add_argument('--xbmceventserverport',
                         help='xbmc event server port (default=9777)',
-                        default=9777,
                         type=int)
 
     parser.add_argument('--xbmcuser',
@@ -257,7 +263,6 @@ if __name__ == '__main__':
     parser.add_argument('--log-file',
                         dest='log_file',
                         help='manual log file',
-                        default=getDefaultLogFile(),
                         type=str)
 
     parser.add_argument('--log-level',
