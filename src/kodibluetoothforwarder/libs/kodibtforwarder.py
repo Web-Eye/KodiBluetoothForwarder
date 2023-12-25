@@ -97,7 +97,6 @@ class KodiBTForwarder:
                     async for event in self._controller.async_read_loop():
                         if event.type == evdev.ecodes.EV_KEY:
                             key, key_flag, event_type = getEventData(event)
-                            # self._logger.debug(f'key: {key}; key_flag: {key_flag}; event_type: {event_type}')
                             flags = flags | key_flag
                             if key_flag == 0:
                                 self._logger.debug(f'Get Bluetooth event [{event_type}] key "{key}" ({flags})')
@@ -110,7 +109,7 @@ class KodiBTForwarder:
                                             if self._xbmc_connected:
                                                 last_event = 1
                                                 snd_key = entry['key']
-                                                self._logger.debug(f'Bluetooth send key "{snd_key}"')
+                                                self._logger.info(f'Bluetooth send key "{snd_key}"')
                                                 self._xbmc.send_button(map='KB', button=snd_key)
 
                                         elif event_type == 'RELEASE':
@@ -121,7 +120,7 @@ class KodiBTForwarder:
                                                 snd_key = entry['key']
                                                 self._logger.debug(f'Bluetooth send key "{snd_key}"')
                                                 self._xbmc.send_button(map='KB', button=snd_key)
-                                                self._logger.debug('Bluetooth send release all buttons')
+                                                self._logger.info('Bluetooth send "release all buttons"')
                                                 self._xbmc.release_button()
 
                                     elif 'special' in entry and entry['special']:
@@ -142,7 +141,7 @@ class KodiBTForwarder:
                                             last_event = 0
                                             self.ConnectXBMC()
                                             if self._xbmc_connected:
-                                                self._logger.debug('Bluetooth send release all buttons')
+                                                self._logger.info('Bluetooth send "release all buttons"')
                                                 self._xbmc.release_button()
 
                 except error as e:
@@ -163,7 +162,7 @@ class KodiBTForwarder:
     def handleAction(self, msg):
         self.ConnectXBMC()
         if self._xbmc_connected:
-            self._logger.debug(f'Send action "{msg}"')
+            self._logger.info(f'Send action "{msg}"')
             self._xbmc.send_action(msg)
 
     def handleSpecial(self, cmd):
@@ -175,7 +174,7 @@ class KodiBTForwarder:
     def handlePowerOn(self):
         if self._lstPowerOnTimestamp is None or datetime.now() - self._lstPowerOnTimestamp > self._special_timeout:
             self._lstPowerOnTimestamp = datetime.now()
-            self._logger.debug(f'Handle special "PowerOn"')
+            self._logger.info(f'Handle special "PowerOn"')
             mac_address = self._config['xbmc']['mac']
             sendWOLPackage(mac_address)
             self._xbmc_connected = False
@@ -183,7 +182,7 @@ class KodiBTForwarder:
     def handlePowerOff(self):
         if self._lstPowerOffTimestamp is None or datetime.now() - self._lstPowerOffTimestamp > self._special_timeout:
             self._lstPowerOffTimestamp = datetime.now()
-            self._logger.debug(f'Handle special "PowerOff"')
+            self._logger.info(f'Handle special "PowerOff"')
             if not self._rclient.shutdown():
                 if self._config['xbmc']['ssh'] is not None:
                     hostname = self._config['xbmc']['host']
