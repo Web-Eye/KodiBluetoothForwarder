@@ -62,6 +62,8 @@ class KodiBTForwarder:
         self._lstPowerOnTimestamp = None
         self._lstPowerOffTimestamp = None
         self._special_timeout = timedelta(seconds=30)
+        self._lastKeyPress = None
+        self._keyPressTimeOut = timedelta(milliseconds=50)
 
         host = self._config['xbmc']['host']
         port = self._config['xbmc']['webport']
@@ -84,7 +86,7 @@ class KodiBTForwarder:
 
         return None
 
-    async def monitorController(self):
+    async def monitorController(self, eventloop):
         self._logger.debug('starting monitorController task')
         while True:
             if self._controller is None:
@@ -111,43 +113,64 @@ class KodiBTForwarder:
                                                 snd_key = entry['key']
                                                 self._logger.info(f'Bluetooth send key "{snd_key}"')
                                                 self._xbmc.send_button(map='KB', button=snd_key)
+                                                if event_type == 'PRESS':
+                                                    self._lastKeyPress = datetime.now()
 
                                         elif event_type == 'RELEASE':
                                             flags = 0
                                             last_event = 0
-                                            self.ConnectXBMC()
-                                            if self._xbmc_connected:
-                                                snd_key = entry['key']
-                                                self._logger.debug(f'Bluetooth send key "{snd_key}"')
-                                                self._xbmc.send_button(map='KB', button=snd_key)
-                                                self._logger.info('Bluetooth send "release all buttons"')
-                                                self._xbmc.release_button()
+                                            eventloop.create_task(self.releaseButtons(entry['key']))
+                                            # self.ConnectXBMC()
+                                            # if self._xbmc_connected:
+                                            #     snd_key = entry['key']
+                                            #     self._logger.debug(f'Bluetooth send key "{snd_key}"')
+                                            #     self._xbmc.send_button(map='KB', button=snd_key)
+                                            #     self._logger.info('Bluetooth send "release all buttons"')
+                                            #     self._xbmc.release_button()
 
                                     elif 'special' in entry and entry['special']:
                                         flags = 0
                                         last_event = 0
+                                        self._lastKeyPress = None
                                         self.handleSpecial(entry['special'])
 
                                     elif 'action' in entry and entry['action']:
                                         flags = 0
                                         last_event = 0
+                                        self._lastKeyPress = None
                                         self.handleAction(entry['action'])
 
                                 else:
                                     flags = 0
-                                    if event_type == 'RELEASE':
-                                        flags = 0
-                                        if last_event == 1:
-                                            last_event = 0
-                                            self.ConnectXBMC()
-                                            if self._xbmc_connected:
-                                                self._logger.info('Bluetooth send "release all buttons"')
-                                                self._xbmc.release_button()
+                                    if event_type == 'RELEASE' and last_event == 1:
+                                        last_event = 0
+                                        eventloop.create_task(self.releaseButtons())
+                                        # self.ConnectXBMC()
+                                        # if self._xbmc_connected:
+                                        #     self._logger.info('Bluetooth send "release all buttons"')
+                                        #     self._xbmc.release_button()
 
                 except error as e:
                     self._controller = None
 
             await asyncio.sleep(0.5)
+
+    async def releaseButtons(self, snd_key=None):
+        if self._lastKeyPress is not None:
+            wait_time = (self._keyPressTimeOut - (datetime.now() - self._lastKeyPress)).total_seconds()
+            if wait_time > 0:
+                self._logger.debug(f'wait {wait_time} seconds before release Buttons')
+                await asyncio.sleep(wait_time)
+            self._lastKeyPress = None
+
+        self.ConnectXBMC()
+        if self._xbmc_connected:
+            if snd_key is not None:
+                self._logger.debug(f'Bluetooth send key "{snd_key}"')
+                self._xbmc.send_button(map='KB', button=snd_key)
+
+            self._logger.info('Bluetooth send "release all buttons"')
+            self._xbmc.release_button()
 
     def ConnectXBMC(self):
         if not self._xbmc_connected:
@@ -315,7 +338,7 @@ class KodiBTForwarder:
 
         try:
             # eventloop.create_task(wakeup_loop())
-            eventloop.create_task(self.monitorController())
+            eventloop.create_task(self.monitorController(eventloop))
             eventloop.create_task(self.checkXBMC())
             eventloop.create_task(self.ping_eventserver())
             eventloop.run_forever()

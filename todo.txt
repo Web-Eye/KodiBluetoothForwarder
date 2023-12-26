@@ -3,3 +3,4 @@
 # todo: try to disconnect bluetooth after shutdown device (found only cmd:  bluetoothctl disconnect)
 # todo: test this
 # todo: change json config to ini config
+# todo: make sure there is a timespann (50ms) between key-presses and releases
