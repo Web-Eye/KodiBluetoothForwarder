@@ -63,7 +63,7 @@ class KodiBTForwarder:
         self._lstPowerOffTimestamp = None
         self._special_timeout = timedelta(seconds=30)
         self._lastKeyPress = None
-        self._keyPressTimeOut = timedelta(milliseconds=50)
+        self._keyPressTimeOut = timedelta(milliseconds=20)
 
         host = self._config['xbmc']['host']
         port = self._config['xbmc']['webport']
@@ -120,13 +120,6 @@ class KodiBTForwarder:
                                             flags = 0
                                             last_event = 0
                                             eventloop.create_task(self.releaseButtons(entry['key']))
-                                            # self.ConnectXBMC()
-                                            # if self._xbmc_connected:
-                                            #     snd_key = entry['key']
-                                            #     self._logger.debug(f'Bluetooth send key "{snd_key}"')
-                                            #     self._xbmc.send_button(map='KB', button=snd_key)
-                                            #     self._logger.info('Bluetooth send "release all buttons"')
-                                            #     self._xbmc.release_button()
 
                                     elif 'special' in entry and entry['special']:
                                         flags = 0
@@ -145,10 +138,6 @@ class KodiBTForwarder:
                                     if event_type == 'RELEASE' and last_event == 1:
                                         last_event = 0
                                         eventloop.create_task(self.releaseButtons())
-                                        # self.ConnectXBMC()
-                                        # if self._xbmc_connected:
-                                        #     self._logger.info('Bluetooth send "release all buttons"')
-                                        #     self._xbmc.release_button()
 
                 except error as e:
                     self._controller = None
@@ -159,7 +148,7 @@ class KodiBTForwarder:
         if self._lastKeyPress is not None:
             wait_time = (self._keyPressTimeOut - (datetime.now() - self._lastKeyPress)).total_seconds()
             if wait_time > 0:
-                self._logger.debug(f'wait {wait_time} seconds before release Buttons')
+                self._logger.debug(f'wait {int(wait_time * 1000)} ms before release Buttons')
                 await asyncio.sleep(wait_time)
             self._lastKeyPress = None
 
