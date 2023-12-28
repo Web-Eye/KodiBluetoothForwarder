@@ -1,6 +1,6 @@
-# todo: test shutdown via ssh
 # todo: proper README.md
 # todo: try to disconnect bluetooth after shutdown device (found only cmd:  bluetoothctl disconnect)
 # todo: test this
 # todo: change json config to ini config
 # todo: make sure there is a timespann (50ms) between key-presses and releases
++ todo: make setup for special_timeout and keypress_timeout
