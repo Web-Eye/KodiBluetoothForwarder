@@ -63,7 +63,7 @@ class KodiBTForwarder:
         self._lstPowerOffTimestamp = None
         self._special_timeout = timedelta(seconds=30)
         self._lastKeyPress = None
-        self._keyPressTimeOut = timedelta(milliseconds=20)
+        self._keyPressTimeOut = timedelta(milliseconds=40)
 
         host = self._config['xbmc']['host']
         port = self._config['xbmc']['webport']
