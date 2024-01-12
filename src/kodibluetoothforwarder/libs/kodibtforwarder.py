@@ -125,7 +125,7 @@ class KodiBTForwarder:
                                         flags = 0
                                         last_event = 0
                                         self._lastKeyPress = None
-                                        self.handleSpecial(entry['special'])
+                                        self.handleSpecial(entry['special'], eventloop)
 
                                     elif 'action' in entry and entry['action']:
                                         flags = 0
@@ -177,11 +177,16 @@ class KodiBTForwarder:
             self._logger.info(f'Send action "{msg}"')
             self._xbmc.send_action(msg)
 
-    def handleSpecial(self, cmd):
-        {
-            'PowerOn': self.handlePowerOn,
-            'PowerOff': self.handlePowerOff
-        }[cmd]()
+    def handleSpecial(self, cmd, eventloop):
+        # {
+        #     'PowerOn': self.handlePowerOn,
+        #     'PowerOff': eventloop.create_task(self.handlePowerOff)
+        # }[cmd]()
+
+        if cmd == "PowerOn":
+            self.handlePowerOn()
+        elif cmd == 'PowerOff':
+            eventloop.create_task(self.handlePowerOff)
 
     def handlePowerOn(self):
         if self._lstPowerOnTimestamp is None or datetime.now() - self._lstPowerOnTimestamp > self._special_timeout:
@@ -191,55 +196,57 @@ class KodiBTForwarder:
             sendWOLPackage(mac_address)
             self._xbmc_connected = False
 
-    def handlePowerOff(self):
+    async def handlePowerOff(self):
         if self._lstPowerOffTimestamp is None or datetime.now() - self._lstPowerOffTimestamp > self._special_timeout:
             self._lstPowerOffTimestamp = datetime.now()
             self._logger.info(f'Handle special "PowerOff"')
-            if not self._rclient.shutdown():
-                if self._config['xbmc']['ssh'] is not None:
-                    hostname = self._config['xbmc']['host']
-                    port = self._config['xbmc']['ssh']['port']
-                    username = self._config['xbmc']['ssh']['username']
-                    password = self._config['xbmc']['ssh']['password']
-                    sudo_password = self._config['xbmc']['ssh']['sudo_password']
-                    self._logger.info('perform Shutdown via sshclient')
+            if self._rclient.shutdown():
+                await asyncio.sleep(5)
 
-                    self._logger.debug('setup sshclient')
-                    ssh_client = paramiko.SSHClient()
-                    self._logger.debug('add host key policy to sshclient')
-                    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            if self._config['xbmc']['ssh'] is not None:
+                hostname = self._config['xbmc']['host']
+                port = self._config['xbmc']['ssh']['port']
+                username = self._config['xbmc']['ssh']['username']
+                password = self._config['xbmc']['ssh']['password']
+                sudo_password = self._config['xbmc']['ssh']['sudo_password']
+                self._logger.info('perform Shutdown via sshclient')
 
-                    try:
-                        self._logger.debug(f'sshclient.connect {hostname}:{port} via {username}:{password}')
-                        ssh_client.connect(hostname=hostname, port=port, username=username, password=password)
-                        self._logger.debug(f'sshclient.send "sudo shutdown now"')
-                        stdin, stdout, stderr = ssh_client.exec_command("sudo  -S -p '' shutdown now")
-                        self._logger.debug(f'sshclient.send "{sudo_password}"')
-                        stdin.write(f'{sudo_password}\n')
-                        stdin.flush()
+                self._logger.debug('setup sshclient')
+                ssh_client = paramiko.SSHClient()
+                self._logger.debug('add host key policy to sshclient')
+                ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-                        if stdout is not None:
-                            self._logger.debug(f'sshclient.receive (stdout): "{stdout.readlines()}"')
-                        if stderr is not None:
-                            self._logger.debug(f'sshclient.receive (stderr): "{stderr.readlines()}"')
+                try:
+                    self._logger.debug(f'sshclient.connect {hostname}:{port} via {username}:{password}')
+                    ssh_client.connect(hostname=hostname, port=port, username=username, password=password)
+                    self._logger.debug(f'sshclient.send "sudo shutdown now"')
+                    stdin, stdout, stderr = ssh_client.exec_command("sudo  -S -p '' shutdown now")
+                    self._logger.debug(f'sshclient.send "{sudo_password}"')
+                    stdin.write(f'{sudo_password}\n')
+                    stdin.flush()
 
-                    except paramiko.ssh_exception.BadHostKeyException as badhostEx:
-                        self._logger.error(f'BadHostKeyException: {badhostEx}')
+                    if stdout is not None:
+                        self._logger.debug(f'sshclient.receive (stdout): "{stdout.readlines()}"')
+                    if stderr is not None:
+                        self._logger.debug(f'sshclient.receive (stderr): "{stderr.readlines()}"')
 
-                    except paramiko.ssh_exception.AuthenticationException as authEx:
-                        self._logger.error(f'AuthenticationException: {authEx}')
+                except paramiko.ssh_exception.BadHostKeyException as badhostEx:
+                    self._logger.error(f'BadHostKeyException: {badhostEx}')
 
-                    except paramiko.ssh_exception.UnableToAuthenticate as unableEx:
-                        self._logger.error(f'UnableToAuthenticate: {unableEx}')
+                except paramiko.ssh_exception.AuthenticationException as authEx:
+                    self._logger.error(f'AuthenticationException: {authEx}')
 
-                    except socket.error as socketEx:
-                        self._logger.error(f'socket.error: {socketEx}')
+                except paramiko.ssh_exception.UnableToAuthenticate as unableEx:
+                    self._logger.error(f'UnableToAuthenticate: {unableEx}')
 
-                    except paramiko.ssh_exception.NoValidConnectionsError as novalidConEx:
-                        self._logger.error(f'NoValidConnectionsError: {novalidConEx}')
+                except socket.error as socketEx:
+                    self._logger.error(f'socket.error: {socketEx}')
 
-                    except paramiko.ssh_exception.SSHException as sshEx:
-                        self._logger.error(f'SSHException: {sshEx}')
+                except paramiko.ssh_exception.NoValidConnectionsError as novalidConEx:
+                    self._logger.error(f'NoValidConnectionsError: {novalidConEx}')
+
+                except paramiko.ssh_exception.SSHException as sshEx:
+                    self._logger.error(f'SSHException: {sshEx}')
 
             self._xbmc_connected = False
             self._logger.info('XBMC is disconnected')
