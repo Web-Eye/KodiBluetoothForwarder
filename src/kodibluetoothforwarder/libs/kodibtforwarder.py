@@ -279,6 +279,10 @@ class KodiBTForwarder:
             self._logger.debug('command not found')
             return False
 
+        except Exception as ex:
+            self._logger.error(ex)
+            return False
+
     def getMapping(self):
         m = {}
         cwd = os.path.join(os.getcwd(), 'mappings')
