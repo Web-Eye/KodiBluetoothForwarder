@@ -274,10 +274,10 @@ class KodiBTForwarder:
         try:
             process = subprocess.run(command, capture_output=True, text=True)
             err = process.returncode
-            if err != 0:
-                self._logger.debug(f'stderr: {process.stderr}')
-            else:
-                self._logger.debug(f'stdout: {process.stdout}')
+            # if err != 0:
+            #     self._logger.debug(f'stderr: {process.stderr}')
+            # else:
+            #     self._logger.debug(f'stdout: {process.stdout}')
 
         except FileNotFoundError as ex:
             self._logger.debug('command not found')
