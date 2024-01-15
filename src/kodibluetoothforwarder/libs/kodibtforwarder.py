@@ -183,9 +183,12 @@ class KodiBTForwarder:
         #     'PowerOff': eventloop.create_task(self.handlePowerOff)
         # }[cmd]()
 
+        self._logger.debug(f'Handle special "{cmd}"')
+
         if cmd == "PowerOn":
             self.handlePowerOn()
         elif cmd == 'PowerOff':
+            self._logger.debug('eventloop.create_task(self.handlePowerOff)')
             eventloop.create_task(self.handlePowerOff)
 
     def handlePowerOn(self):
@@ -197,6 +200,7 @@ class KodiBTForwarder:
             self._xbmc_connected = False
 
     async def handlePowerOff(self):
+        self._logger.debug(f'handlePowerOff; _lstPowerOffTimestamp: {self._lstPowerOffTimestamp}; datetime.now() - self._lstPowerOffTimestamp: {datetime.now() - self._lstPowerOffTimestamp}; self._special_timeout: {self._special_timeout} ')
         if self._lstPowerOffTimestamp is None or datetime.now() - self._lstPowerOffTimestamp > self._special_timeout:
             self._lstPowerOffTimestamp = datetime.now()
             self._logger.info(f'Handle special "PowerOff"')
