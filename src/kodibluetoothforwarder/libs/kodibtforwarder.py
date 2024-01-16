@@ -188,8 +188,8 @@ class KodiBTForwarder:
         if cmd == "PowerOn":
             self.handlePowerOn()
         elif cmd == 'PowerOff':
-            self._logger.debug('eventloop.create_task(self.handlePowerOff)')
-            eventloop.create_task(self.handlePowerOff)
+            self._logger.debug('eventloop.create_task(self.handlePowerOff())')
+            eventloop.create_task(self.handlePowerOff())
 
     def handlePowerOn(self):
         if self._lstPowerOnTimestamp is None or datetime.now() - self._lstPowerOnTimestamp > self._special_timeout:
@@ -274,10 +274,10 @@ class KodiBTForwarder:
         try:
             process = subprocess.run(command, capture_output=True, text=True)
             err = process.returncode
-            if err != 0:
-                self._logger.debug(f'stderr: {process.stderr.decode()}')
-            else:
-                self._logger.debug(f'stdout: {process.stdout.decode()}')
+            # if err != 0:
+            #     self._logger.debug(f'stderr: {process.stderr}')
+            # else:
+            #     self._logger.debug(f'stdout: {process.stdout}')
 
         except FileNotFoundError as ex:
             self._logger.debug('command not found')
