@@ -125,7 +125,7 @@ class KodiBTForwarder:
                                         flags = 0
                                         last_event = 0
                                         self._lastKeyPress = None
-                                        self.handleSpecial(entry['special'], eventloop)
+                                        eventloop.create_task(self.handleSpecial(entry['special'], eventloop))
 
                                     elif 'action' in entry and entry['action']:
                                         flags = 0
@@ -177,7 +177,7 @@ class KodiBTForwarder:
             self._logger.info(f'Send action "{msg}"')
             self._xbmc.send_action(msg)
 
-    def handleSpecial(self, cmd, eventloop):
+    async def handleSpecial(self, cmd, eventloop):
         # {
         #     'PowerOn': self.handlePowerOn,
         #     'PowerOff': eventloop.create_task(self.handlePowerOff)
@@ -189,7 +189,8 @@ class KodiBTForwarder:
             self.handlePowerOn()
         elif cmd == 'PowerOff':
             self._logger.debug('eventloop.create_task(self.handlePowerOff())')
-            eventloop.create_task(self.handlePowerOff())
+            # eventloop.create_task(self.handlePowerOff())
+            await self.handlePowerOff()
 
     def handlePowerOn(self):
         if self._lstPowerOnTimestamp is None or datetime.now() - self._lstPowerOnTimestamp > self._special_timeout:
