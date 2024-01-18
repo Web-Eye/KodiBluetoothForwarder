@@ -39,6 +39,7 @@ import subprocess
 from socket import *
 from os.path import isfile
 from datetime import datetime, timedelta
+from time import sleep
 
 from .common.tools import *
 from .core.xbmcclient import *
@@ -125,7 +126,7 @@ class KodiBTForwarder:
                                         flags = 0
                                         last_event = 0
                                         self._lastKeyPress = None
-                                        eventloop.create_task(self.handleSpecial(entry['special'], eventloop))
+                                        self.handleSpecial(entry['special'])
 
                                     elif 'action' in entry and entry['action']:
                                         flags = 0
@@ -177,20 +178,11 @@ class KodiBTForwarder:
             self._logger.info(f'Send action "{msg}"')
             self._xbmc.send_action(msg)
 
-    async def handleSpecial(self, cmd, eventloop):
-        # {
-        #     'PowerOn': self.handlePowerOn,
-        #     'PowerOff': eventloop.create_task(self.handlePowerOff)
-        # }[cmd]()
-
-        self._logger.debug(f'Handle special "{cmd}"')
-
-        if cmd == "PowerOn":
-            self.handlePowerOn()
-        elif cmd == 'PowerOff':
-            self._logger.debug('eventloop.create_task(self.handlePowerOff())')
-            # eventloop.create_task(self.handlePowerOff())
-            await self.handlePowerOff()
+    def handleSpecial(self, cmd):
+        {
+            'PowerOn': self.handlePowerOn,
+            'PowerOff': self.handlePowerOff
+        }[cmd]()
 
     def handlePowerOn(self):
         if self._lstPowerOnTimestamp is None or datetime.now() - self._lstPowerOnTimestamp > self._special_timeout:
@@ -200,13 +192,12 @@ class KodiBTForwarder:
             sendWOLPackage(mac_address)
             self._xbmc_connected = False
 
-    async def handlePowerOff(self):
-        self._logger.debug(f'handlePowerOff; _lstPowerOffTimestamp: {self._lstPowerOffTimestamp}; datetime.now() - self._lstPowerOffTimestamp: {datetime.now() - self._lstPowerOffTimestamp}; self._special_timeout: {self._special_timeout} ')
+    def handlePowerOff(self):
         if self._lstPowerOffTimestamp is None or datetime.now() - self._lstPowerOffTimestamp > self._special_timeout:
             self._lstPowerOffTimestamp = datetime.now()
             self._logger.info(f'Handle special "PowerOff"')
             if self._rclient.shutdown():
-                await asyncio.sleep(5)
+                sleep(5)
 
             if self._config['xbmc']['ssh'] is not None:
                 hostname = self._config['xbmc']['host']
@@ -350,6 +341,3 @@ class KodiBTForwarder:
         finally:
             eventloop.close()
             self._logger.info("Successfully shutdown [Kodi Bluetooth Forwarder] service.")
-
-
-        
