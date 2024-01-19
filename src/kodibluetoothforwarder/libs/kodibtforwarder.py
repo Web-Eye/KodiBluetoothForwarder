@@ -244,6 +244,9 @@ class KodiBTForwarder:
                 except paramiko.ssh_exception.SSHException as sshEx:
                     self._logger.error(f'SSHException: {sshEx}')
 
+                except Exception as ex:
+                    self._logger.error(f'ex: {ex}')
+
             self._xbmc_connected = False
             self._logger.info('XBMC is disconnected')
             self.disconnectController()
