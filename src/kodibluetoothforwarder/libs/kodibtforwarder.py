@@ -140,7 +140,7 @@ class KodiBTForwarder:
                                         last_event = 0
                                         eventloop.create_task(self.releaseButtons())
 
-                except error as e:
+                except Exception as e:
                     self._controller = None
 
             await asyncio.sleep(0.5)
