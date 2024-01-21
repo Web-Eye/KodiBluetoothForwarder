@@ -28,15 +28,15 @@
 ### KEY_RIGHTMETA   --> 0b10000000 (128)
 
 import json
-import socket
 
 import evdev
 import asyncio
 import signal
 import paramiko
-import subprocess
+# import subprocess
+import socket
 
-from socket import *
+# from socket import *
 from os.path import isfile
 from datetime import datetime, timedelta
 from time import sleep
@@ -235,8 +235,8 @@ class KodiBTForwarder:
                 except paramiko.ssh_exception.UnableToAuthenticate as unableEx:
                     self._logger.error(f'UnableToAuthenticate: {unableEx}')
 
-                except socket.error as socketEx:
-                    self._logger.error(f'socket.error: {socketEx}')
+                # except socket.error as socketEx:
+                #     self._logger.error(f'socket.error: {socketEx}')
 
                 except paramiko.ssh_exception.NoValidConnectionsError as novalidConEx:
                     self._logger.error(f'NoValidConnectionsError: {novalidConEx}')
@@ -245,7 +245,7 @@ class KodiBTForwarder:
                     self._logger.error(f'SSHException: {sshEx}')
 
                 except Exception as ex:
-                    self._logger.error(f'ex: {ex}')
+                    self._logger.error(f'{type(ex).__name__}: {ex}')
 
             self._xbmc_connected = False
             self._logger.info('XBMC is disconnected')
@@ -264,23 +264,24 @@ class KodiBTForwarder:
             await asyncio.sleep(120)
 
     def disconnectController(self):
-        command = ['bluetoothctl', 'disconnect', self._config['controller']['mac']]
-        self._logger.debug('run bluetoothctl to disconnect device')
-        try:
-            process = subprocess.run(command, capture_output=True, text=True)
-            err = process.returncode
-            # if err != 0:
-            #     self._logger.debug(f'stderr: {process.stderr}')
-            # else:
-            #     self._logger.debug(f'stdout: {process.stdout}')
-
-        except FileNotFoundError as ex:
-            self._logger.debug('command not found')
-            return False
-
-        except Exception as ex:
-            self._logger.error(ex)
-            return False
+        pass
+        # command = ['bluetoothctl', 'disconnect', self._config['controller']['mac']]
+        # self._logger.debug('run bluetoothctl to disconnect device')
+        # try:
+        #     process = subprocess.run(command, capture_output=True, text=True)
+        #     err = process.returncode
+        #     # if err != 0:
+        #     #     self._logger.debug(f'stderr: {process.stderr}')
+        #     # else:
+        #     #     self._logger.debug(f'stdout: {process.stdout}')
+        #
+        # except FileNotFoundError as ex:
+        #     self._logger.debug('command not found')
+        #     return False
+        #
+        # except Exception as ex:
+        #     self._logger.error(ex)
+        #     return False
 
     def getMapping(self):
         m = {}
