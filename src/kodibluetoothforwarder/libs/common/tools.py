@@ -19,6 +19,8 @@ import evdev
 import socket
 import ipaddress
 from evdev import ecodes
+from pythonping import ping
+from io import StringIO
 
 
 def getBluetoothController(mac):
@@ -108,3 +110,10 @@ def sendWOLPackage(mac):
 
         finally:
             pass
+
+
+def isServerUp(host):
+    _stdOut = StringIO()
+    ping(target=host, count=1, timeout=1, verbose=True, out=_stdOut)
+    line = _stdOut.getvalue().strip()
+    return line != 'Request timed out'

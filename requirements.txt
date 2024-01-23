@@ -15,3 +15,4 @@ struct
 time
 paramiko
 subprocess
+pythonping
