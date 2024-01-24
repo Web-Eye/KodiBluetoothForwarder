@@ -199,7 +199,7 @@ class KodiBTForwarder:
             doSSHPowerOff = True
             if self._rclient.shutdown():
                 sleep(5)
-                doSSHPowerOff = isServerUp(self._config['xbmc']['host'])
+                doSSHPowerOff = not isServerUp(self._config['xbmc']['host'])
 
             if doSSHPowerOff:
                 if self._config['xbmc']['ssh'] is not None:
