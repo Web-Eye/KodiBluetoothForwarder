@@ -216,7 +216,7 @@ class KodiBTForwarder:
                     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
                     try:
-                        self._logger.debug(f'sshclient.connect {hostname}:{port} via {username}:{password}')
+                        self._logger.debug(f'sshclient.connect {hostname}:{port}')
                         ssh_client.connect(hostname=hostname, port=port, username=username, password=password)
                         self._logger.debug(f'sshclient.send "sudo shutdown now"')
                         stdin, stdout, stderr = ssh_client.exec_command("sudo  -S -p '' shutdown now")
