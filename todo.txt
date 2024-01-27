@@ -1,4 +1,2 @@
 # todo: proper README.md
-# todo: try to disconnect bluetooth after shutdown device (found only cmd:  bluetoothctl disconnect)
-# todo: test this
-# todo: change json config to ini config
+
