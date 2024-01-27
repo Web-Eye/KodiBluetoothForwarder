@@ -112,7 +112,7 @@ class KodiBTForwarder:
                                             if self._xbmc_connected:
                                                 last_event = 1
                                                 snd_key = entry['key']
-                                                self._logger.info(f'Bluetooth send key "{snd_key}"')
+                                                self._logger.debug(f'Bluetooth send key "{snd_key}"')
                                                 self._xbmc.send_button(map='KB', button=snd_key)
                                                 if event_type == 'PRESS':
                                                     self._lastKeyPress = datetime.now()
@@ -159,7 +159,7 @@ class KodiBTForwarder:
                 self._logger.debug(f'Bluetooth send key "{snd_key}"')
                 self._xbmc.send_button(map='KB', button=snd_key)
 
-            self._logger.info('Bluetooth send "release all buttons"')
+            self._logger.debug('Bluetooth send "release all buttons"')
             self._xbmc.release_button()
 
     def ConnectXBMC(self):
