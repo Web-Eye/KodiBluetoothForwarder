@@ -175,7 +175,7 @@ class KodiBTForwarder:
     def handleAction(self, msg):
         self.ConnectXBMC()
         if self._xbmc_connected:
-            self._logger.info(f'Send action "{msg}"')
+            self._logger.debug(f'Send action "{msg}"')
             self._xbmc.send_action(msg)
 
     def handleSpecial(self, cmd):
