@@ -146,6 +146,12 @@
             "key": "blue"
          }
       ],
+      "KEY_7": [
+         {
+            "flags": 57,
+            "special": "HardReset"
+         }
+      ],
       "KEY_8": [
          {
             "flags": 57,
