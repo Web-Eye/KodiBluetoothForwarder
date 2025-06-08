@@ -23,10 +23,10 @@ from pythonping import ping
 from io import StringIO
 
 
-def getBluetoothController(mac):
+def getBluetoothController(mac, name):
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     for device in devices:
-        if device.phys == mac:
+        if (mac is None or device.phys == mac) and (name is None or device.name == name):
             return device
 
     return None

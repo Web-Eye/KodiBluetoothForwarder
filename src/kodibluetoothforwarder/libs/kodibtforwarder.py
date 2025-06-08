@@ -91,7 +91,7 @@ class KodiBTForwarder:
         self._logger.debug('starting monitorController task')
         while True:
             if self._controller is None:
-                self._controller = getBluetoothController(self._config['controller']['mac'])
+                self._controller = getBluetoothController(self._config['controller'].get('mac'), self._config['controller'].get('name'))
 
             if self._controller is not None:
                 flags = 0

@@ -68,8 +68,11 @@ def getConfig(args):
     if 'log' not in _config:
         _config['log'] = {}
 
-    if args.controller:
-        _config['controller']['mac'] = args.controller
+    if args.controllermac:
+        _config['controller']['mac'] = args.controllermac
+
+    if args.controllername:
+        _config['controller']['name'] = args.controllername
 
     if args.mapping:
         _config['controller']['mapping'] = args.mapping
@@ -164,8 +167,8 @@ def validateConfig(_config, logger):
         logger.critical("broken config (log)")
         return False
 
-    if config['controller'].get('mac') is None:
-        logger.critical("broken config (controller.mac)")
+    if config['controller'].get('mac') is None and config['controller'].get('name') is None:
+        logger.critical("broken config (controller.mac/name)")
         return False
 
     if config['controller'].get('mapping') is None:
@@ -212,8 +215,12 @@ if __name__ == '__main__':
                         default=getDefaultConfigFile(),
                         type=str)
 
-    parser.add_argument( '--controller',
+    parser.add_argument( '--controllermac',
                         help='controller mac',
+                        type=str)
+
+    parser.add_argument('--controllername',
+                        help='controller name',
                         type=str)
 
     parser.add_argument('--xbmchost',
